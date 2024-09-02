@@ -7,3 +7,5 @@ class Alert(db.Model):
     alert_date = db.Column(db.DateTime)
     status = db.Column(db.String(100))
     description = db.Column(db.String(500))
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
