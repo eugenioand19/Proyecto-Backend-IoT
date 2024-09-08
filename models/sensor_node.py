@@ -2,6 +2,7 @@ from db import db
 
 class SensorNode(db.Model):
     table_name = 'sensor_node'
+    sensor_node_id = db.Column(db.Integer, primary_key=True)
     node_id = db.Column(db.Integer)
     sensor_id = db.Column(db.Integer)
     installation_date = db.Column(db.DateTime)
