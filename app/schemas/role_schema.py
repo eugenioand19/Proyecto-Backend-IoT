@@ -1,7 +1,7 @@
 from flask_marshmallow.sqla import SQLAlchemyAutoSchema
-from models.alert import Alert
+from app.models.role import Role
 
-class AlertSchema(SQLAlchemyAutoSchema):
+class RoleSchema(SQLAlchemyAutoSchema):
     class Meta:
-        model = Alert
+        model = Role
         load_instance = True

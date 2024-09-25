@@ -1,5 +1,5 @@
 from flask_marshmallow.sqla import SQLAlchemyAutoSchema
-from models.sensor import Sensor
+from app.models.sensor import Sensor
 
 class SensorSchema(SQLAlchemyAutoSchema):
     class Meta:

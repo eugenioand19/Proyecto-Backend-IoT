@@ -1,5 +1,5 @@
 from flask_marshmallow.sqla import SQLAlchemyAutoSchema
-from models.node import Node
+from app.models.node import Node
 
 class NodeSchema(SQLAlchemyAutoSchema):
     class Meta:

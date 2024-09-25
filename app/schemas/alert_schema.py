@@ -1,7 +1,7 @@
 from flask_marshmallow.sqla import SQLAlchemyAutoSchema
-from models.user import User
+from app.models.alert import Alert
 
-class UserSchema(SQLAlchemyAutoSchema):
+class AlertSchema(SQLAlchemyAutoSchema):
     class Meta:
-        model = User
+        model = Alert
         load_instance = True
