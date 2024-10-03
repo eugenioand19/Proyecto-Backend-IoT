@@ -3,6 +3,10 @@ from decouple import config
 class Config:
     SECRET_KEY = config('SECRET_KEY')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    JWT_SECRET_KEY = config('JWT_SECRET_KEY', 'super_secret_key_change_this_in_production')
+    JWT_ACCESS_TOKEN_EXPIRES = config('JWT_ACCESS_TOKEN_EXPIRES',3600 )
+    JWT_REFRESH_TOKEN_EXPIRES = config('JWT_REFRESH_TOKEN_EXPIRES', 86400)
+
 
 class DevelopmentConfig(Config):
     DEBUG = True
@@ -14,6 +18,11 @@ class DevelopmentConfig(Config):
 
     SQLALCHEMY_DATABASE_URI = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
+class ProductionConfig(Config):
+    DEBUG = True
+    SQLALCHEMY_DATABASE_URI = config('DATA_BASE_URL_PROD','postgres://default:u1vIgKtYRp6i@ep-cold-lab-a4al074v-pooler.us-east-1.aws.neon.tech:5432/verceldb?sslmode=require')
+
 config = {
-    'development': DevelopmentConfig
+    'development': DevelopmentConfig,
+    'production' : ProductionConfig
 }

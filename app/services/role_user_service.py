@@ -63,3 +63,6 @@ def delete_role_user(role_user_id):
     except Exception as e:
         db.session.rollback()
         raise Exception("Error al eliminar el nodo de sensor") from e
+    
+
+

@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from app.services.user_service import (
     get_all_users,
     get_user_by_id,
@@ -9,10 +10,15 @@ from app.services.user_service import (
 
 user_bp = Blueprint('user', __name__, url_prefix='/api')
 
+
 @user_bp.route('/users', methods=['GET'])
+@jwt_required()
 def get_users():
     try:
+        current_user = get_jwt_identity()  # Obtiene el usuario del token
+        print(current_user)
         users = get_all_users()
+
         return jsonify(users), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500

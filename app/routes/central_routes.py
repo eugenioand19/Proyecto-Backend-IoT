@@ -8,6 +8,7 @@ from app.routes.role_route import role_bp
 from app.routes.wetland_route import wetland_bp
 from app.routes.sensor_route import sensor_bp
 from app.routes.sensor_node_route import sensor_node_bp
+from app.routes.auth_route import auth_bp
 def register_blueprints(app):
     blueprints = [
         user_bp,
@@ -19,6 +20,7 @@ def register_blueprints(app):
         wetland_bp,
         sensor_bp,
         sensor_node_bp,
+        auth_bp
     ]
     
     # Register all blueprints
