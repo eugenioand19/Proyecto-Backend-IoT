@@ -47,7 +47,7 @@ def update_node(node_id, data):
         db.session.commit()
         return node_schema.dump(node)
     except ValidationError as ve:
-        raise ValueError("Error en la validación de los datos") from ve
+        raise ValueError(str(ve)) from ve
     except Exception as e:
         db.session.rollback()
         raise Exception("Error al actualizar el nodo de sensor") from e

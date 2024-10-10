@@ -2,14 +2,20 @@ from flask import jsonify
 from sqlalchemy.exc import SQLAlchemyError
 from marshmallow import ValidationError
 
+
+
+# Step 2: Create an error handler
+
+
 def register_error_handlers(app):
     @app.errorhandler(SQLAlchemyError)
     def handle_sqlalchemy_error(e):
         print(e)
-        return jsonify({"error": "A database error occurred"}), 500
-
+        return jsonify({"error": "A database error occurred"}), 400
+    
     @app.errorhandler(ValidationError)
     def handle_validation_error(e):
+        print(e)
         return jsonify(e.messages), 400
 
     @app.errorhandler(ValueError)  # Captura de errores personalizados

@@ -1,7 +1,10 @@
 from flask import Blueprint, jsonify, request
+from app.schemas.user_schema import UserQuerySchema
 from flask_jwt_extended import get_jwt_identity, jwt_required
+from app.utils.error.error_responses import bad_request_message,server_error_message
+from app.utils.pagination.page_link import create_page_link
 from app.services.user_service import (
-    get_all_users,
+    get_users_service,
     get_user_by_id,
     create_user,
     update_user,
@@ -12,16 +15,31 @@ user_bp = Blueprint('user', __name__, url_prefix='/api')
 
 
 @user_bp.route('/users', methods=['GET'])
-@jwt_required()
 def get_users():
     try:
-        current_user = get_jwt_identity()  # Obtiene el usuario del token
-        print(current_user)
-        users = get_all_users()
+        
+        schema = UserQuerySchema()
 
-        return jsonify(users), 200
+        #Validate req params
+        try:
+            params = schema.load(request.args)
+        except Exception as e:
+            return bad_request_message(details=str(e))
+        
+        #get se params
+        page_size = params['page_size']
+        page = params['page']
+        text_search = params.get('text_search', '')
+        sort_property = params.get('sort_property', 'created_at')
+        sort_order = params.get('sort_order', 'ASC')
+
+        #create de pagination object
+        page_link = create_page_link(page_size,page,text_search,sort_property,sort_order)
+        
+        #response ok
+        return get_users_service(page_link)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return server_error_message(details=str(e))
 
 @user_bp.route('/users/<int:id>', methods=['GET'])
 def get_user(id):
@@ -36,8 +54,8 @@ def get_user(id):
 @user_bp.route('/users', methods=['POST'])
 def create_users():
     try:
-        user = create_user(request.json)
-        return jsonify(user), 201
+        user, status_code = create_user(request.json)
+        return jsonify(user), status_code
     except ValueError as ve:
         return jsonify({'error': str(ve)}), 400  # Error de validación
     except Exception as e:
