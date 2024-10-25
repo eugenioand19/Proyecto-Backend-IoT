@@ -25,6 +25,11 @@ class PageLink:
         self.text_search = text_search
         self.sort_order = sort_order
 
+class TimePageLink:
+    def __init__(self, page_link, start_time, end_time):
+        self.page_link = page_link
+        self.start_time = start_time
+        self.end_time = end_time
 
 def create_page_link(page_size, page, text_search=None, sort_property=None, sort_order=None):
     
@@ -45,6 +50,12 @@ def create_page_link(page_size, page, text_search=None, sort_property=None, sort
     
     return PageLink(page_size, page, text_search)
 
+def create_time_page_link(page_size, page, text_search, sort_property, sort_order, start_time, end_time):
+    try:
+        page_link = create_page_link(page_size, page, text_search, sort_property, sort_order)
+        return TimePageLink(page_link, start_time, end_time)
+    except Exception as e:
+        raise ThingsboardException(f"Error while creating TimePageLink: {str(e)}")
 
 def is_valid_property(property_name):
     # Validate if the string matches the regex (Unicode characters, numbers, '_', '-')

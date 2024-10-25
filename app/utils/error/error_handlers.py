@@ -1,9 +1,14 @@
 from flask import jsonify
 from sqlalchemy.exc import SQLAlchemyError
 from marshmallow import ValidationError
+from app.utils.error.error_responses import *
 
 
+class ResourceNotFound(Exception):
+    pass
 
+class ValidationErrorExc(Exception):
+    pass
 # Step 2: Create an error handler
 
 
@@ -13,10 +18,7 @@ def register_error_handlers(app):
         print(e)
         return jsonify({"error": "A database error occurred"}), 400
     
-    @app.errorhandler(ValidationError)
-    def handle_validation_error(e):
-        print(e)
-        return jsonify(e.messages), 400
+    
 
     @app.errorhandler(ValueError)  # Captura de errores personalizados
     def handle_value_error(e):
@@ -29,6 +31,14 @@ def register_error_handlers(app):
     @app.errorhandler(500)
     def handle_500_error(e):
         return jsonify({"error": "An internal server error occurred"}), 500
+    
+    @app.errorhandler(ValidationErrorExc)
+    def handle_validation_error(e):
+        return bad_request_message(details=e)
+    
+    @app.errorhandler(ResourceNotFound)
+    def handle_resource_not_found(e):
+        return not_found_message(details=e)
     
 
     from flask_jwt_extended import JWTManager

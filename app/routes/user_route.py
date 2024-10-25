@@ -1,8 +1,4 @@
 from flask import Blueprint, jsonify, request
-from app.schemas.user_schema import UserQuerySchema
-from flask_jwt_extended import get_jwt_identity, jwt_required
-from app.utils.error.error_responses import bad_request_message,server_error_message
-from app.utils.pagination.page_link import create_page_link
 from app.services.user_service import (
     get_users_service,
     get_user_by_id,
@@ -10,10 +6,12 @@ from app.services.user_service import (
     update_user,
     delete_user
 )
-
+from app.schemas.user_schema import UserQuerySchema,UserSchema,UserSchemaView
+from app.utils.error.error_responses import *
+from app.utils.pagination.page_link import create_page_link
 user_bp = Blueprint('user', __name__, url_prefix='/api')
 
-
+user_schema = UserSchema()
 @user_bp.route('/users', methods=['GET'])
 def get_users():
     try:
@@ -40,43 +38,48 @@ def get_users():
         return get_users_service(page_link)
     except Exception as e:
         return server_error_message(details=str(e))
-
-@user_bp.route('/users/<int:id>', methods=['GET'])
-def get_user(id):
+    
+@user_bp.route('/users/<uuid:user_id>', methods=['GET'])
+def get_user(user_id):
     try:
-        user = get_user_by_id(id)
-        return jsonify(user), 200
-    except ValueError as ve:
-        return jsonify({'error': str(ve)}), 404  # Nodo no encontrado
+        user = get_user_by_id(user_id)
+        return user
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return server_error_message(details=str(e))
 
 @user_bp.route('/users', methods=['POST'])
 def create_users():
     try:
-        user, status_code = create_user(request.json)
-        return jsonify(user), status_code
-    except ValueError as ve:
-        return jsonify({'error': str(ve)}), 400  # Error de validación
+        try:
+            req = user_schema.load(request.json)
+        except Exception as e:
+            return bad_request_message(details=str(e))
+        
+        return create_user(request.json)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return server_error_message(details=str(e)) 
+        
+    
 
-@user_bp.route('/users/<int:id>', methods=['PUT'])
-def update_user_route(id):
+@user_bp.route('/users/<uuid:user_id>', methods=['PUT'])
+def update_user_route(user_id):
     try:
-        user = update_user(id, request.json)
-        return jsonify(user), 200
-    except ValueError as ve:
-        return jsonify({'error': str(ve)}), 404  # Nodo no encontrado
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
-@user_bp.route('/users/<int:id>', methods=['DELETE'])
-def delete_user_route(id):
-    try:
-        delete_user(id)
-        return '', 204
-    except ValueError as ve:
-        return jsonify({'error': str(ve)}), 404  # Nodo no encontrado
+        try:
+            req = user_schema.load(request.json, partial=True)
+        except Exception as e:
+            return bad_request_message(details=str(e))
+    
+        response = update_user(user_id, request.json)
+        
+        return response
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return server_error_message(details=str(e))
+
+@user_bp.route('/users/<uuid:user_id>', methods=['DELETE'])
+def delete_user_route(user_id):
+    try:
+        
+        return delete_user(user_id)
+    except Exception as e:
+        return server_error_message(details=str(e))

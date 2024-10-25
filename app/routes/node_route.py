@@ -4,55 +4,91 @@ from app.services.node_service import (
     get_node_by_id,
     create_node,
     update_node,
-    delete_node
+    delete_node,
+    assing_sensors_service
 )
-
+from marshmallow.exceptions import ValidationError
+from app.schemas.node_schema import NodeQuerySchema,NodeSchema
+from app.utils.error.error_handlers import ValidationErrorExc
+from app.utils.error.error_responses import *
+from app.utils.pagination.page_link import create_page_link
 node_bp = Blueprint('node', __name__, url_prefix='/api')
 
+node_schema = NodeSchema()
 @node_bp.route('/nodes', methods=['GET'])
 def get_nodes():
     try:
-        nodes = get_all_nodes()
-        return jsonify(nodes), 200
+        schema = NodeQuerySchema()
+        try:
+            params = schema.load(request.args)
+        except ValidationError as e:
+            return bad_request_message(details=str(e.messages))  
+
+        params = schema.load(request.args)
+        #get se params
+        page_size = params['page_size']
+        page = params['page']
+        text_search = params.get('text_search', '')
+        sort_property = params.get('sort_property', 'created_at')
+        sort_order = params.get('sort_order', 'ASC')
+        statusList = params.get('statusList', '')
+        typesList = params.get('typesList', '')
+        
+        #create de pagination object
+        page_link = create_page_link(page_size,page,text_search,sort_property,sort_order)
+
+        nodes = get_all_nodes(page_link,statusList=statusList,typesList=typesList)
+        return nodes
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return server_error_message(details=str(e))
 
 @node_bp.route('/nodes/<int:id>', methods=['GET'])
 def get_node(id):
     try:
         node = get_node_by_id(id)
-        return jsonify(node), 200
-    except ValueError as ve:
-        return jsonify({'error': str(ve)}), 404  # Nodo no encontrado
+        return node
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return server_error_message(details=str(e))
 
 @node_bp.route('/nodes', methods=['POST'])
 def create_nodes():
     try:
-        node = create_node(request.json)
-        return jsonify(node), 201
-    except ValueError as ve:
-        return jsonify({'error': str(ve)}), 400  # Error de validación
+        try:
+            req = node_schema.load(request.json)
+        except ValidationError as e:
+            return bad_request_message(details=str(e.messages)) 
+        
+        return create_node(req)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return server_error_message(details=str(e))
 
 @node_bp.route('/nodes/<int:id>', methods=['PUT'])
 def update_node_route(id):
     try:
-        node = update_node(id, request.json)
-        return jsonify(node), 200
-    except ValueError as ve:
-        return jsonify({'error': str(ve)}), 404  # Nodo no encontrado
+
+        try:
+            req = node_schema.load(request.json, partial=True)
+        except ValidationError as e:
+            return bad_request_message(details=str(e.messages))  
+    
+        response = update_node(id, request.json)
+        
+        return response
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return server_error_message(details=str(e))
 
 @node_bp.route('/nodes/<int:id>', methods=['DELETE'])
 def delete_node_route(id):
     try:
         delete_node(id)
         return '', 204
-    except ValueError as ve:
-        return jsonify({'error': str(ve)}), 404  # Nodo no encontrado
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return server_error_message(details=str(e))
+    
+
+@node_bp.route('/nodes/<int:node_id>/update_sensors', methods=['POST'])
+def assing_sensors(node_id):
+    
+
+    return assing_sensors_service(node_id,request.json)
+    

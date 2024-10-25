@@ -4,48 +4,78 @@ from app.services.role_service import (
     get_role_by_id,
     create_role,
     update_role,
-    delete_role
+    delete_role,
+    create_role_permission
 )
-
+from app.schemas.role_schema import RoleQuerySchema,RoleSchema
+from app.utils.error.error_responses import *
+from app.utils.pagination.page_link import create_page_link
 role_bp = Blueprint('role', __name__, url_prefix='/api')
 
+role_schema = RoleSchema()
 @role_bp.route('/roles', methods=['GET'])
 def get_roles():
     try:
-        roles = get_all_roles()
-        return jsonify(roles), 200
+        schema = RoleQuerySchema()
+        try:
+            params = schema.load(request.args)
+        except Exception as e:
+            return bad_request_message(details=str(e))
+        
+         #get se params
+        page_size = params['page_size']
+        page = params['page']
+        text_search = params.get('text_search', '')
+        sort_property = params.get('sort_property', 'created_at')
+        sort_order = params.get('sort_order', 'ASC')
+
+        
+        #create de pagination object
+        page_link = create_page_link(page_size,page,text_search,sort_property,sort_order)
+
+        roles = get_all_roles(page_link)
+        return roles
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+         return server_error_message(details=str(e))
 
 @role_bp.route('/roles/<int:id>', methods=['GET'])
 def get_role(id):
     try:
         role = get_role_by_id(id)
-        return jsonify(role), 200
+        return role
     except ValueError as ve:
-        return jsonify({'error': str(ve)}), 404  # Nodo no encontrado
+        return not_found_message(details=str(ve))
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return server_error_message(details=str(e))
 
 @role_bp.route('/roles', methods=['POST'])
 def create_roles():
     try:
-        role = create_role(request.json)
-        return jsonify(role), 201
-    except ValueError as ve:
-        return jsonify({'error': str(ve)}), 400  # Error de validación
+        try:
+            req = role_schema.load(request.json)
+        except Exception as e:
+            return bad_request_message(details=str(e))
+        
+        return create_role(req)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return server_error_message(details=str(e))
 
 @role_bp.route('/roles/<int:id>', methods=['PUT'])
 def update_role_route(id):
     try:
-        role = update_role(id, request.json)
-        return jsonify(role), 200
-    except ValueError as ve:
-        return jsonify({'error': str(ve)}), 404  # Nodo no encontrado
+
+        try:
+            req = role_schema.load(request.json, partial=True)
+        except Exception as e:
+            return bad_request_message(details=str(e))
+    
+        response = update_role(id, request.json)
+        
+        return response
+    except ValueError as e:
+        return not_found_message(details=e)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return server_error_message(details=str(e))
 
 @role_bp.route('/roles/<int:id>', methods=['DELETE'])
 def delete_role_route(id):
@@ -53,6 +83,17 @@ def delete_role_route(id):
         delete_role(id)
         return '', 204
     except ValueError as ve:
-        return jsonify({'error': str(ve)}), 404  # Nodo no encontrado
+        return not_found_message(details=ve)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return server_error_message(details=str(e))
+    
+
+@role_bp.route('/roles/<int:role_id>/update_permissions', methods=['POST'])
+def assing_role_permissions(role_id):
+    
+        """ try:
+            req = input_role_permission_schema.load(request.json)
+        except Exception as e:
+            return bad_request_message(details=str(e)) """
+        
+        return create_role_permission(role_id,request.json)

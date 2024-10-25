@@ -6,46 +6,77 @@ from app.services.sensor_service import (
     update_sensor,
     delete_sensor
 )
-
+from app.schemas.sensor_schema import SensorQuerySchema,SensorSchema
+from app.utils.error.error_responses import *
+from app.utils.pagination.page_link import create_page_link
 sensor_bp = Blueprint('sensor', __name__, url_prefix='/api')
 
+sensor_schema = SensorSchema()
 @sensor_bp.route('/sensors', methods=['GET'])
 def get_sensors():
     try:
-        sensors = get_all_sensors()
-        return jsonify(sensors), 200
+        schema = SensorQuerySchema()
+        try:
+            params = schema.load(request.args)
+        except Exception as e:
+            return bad_request_message(details=str(e))
+        
+        #get se params
+        page_size = params['page_size']
+        page = params['page']
+        text_search = params.get('text_search', '')
+        sort_property = params.get('sort_property', 'created_at')
+        sort_order = params.get('sort_order', 'ASC')
+        statusList = params.get('statusList', '')
+        typesList = params.get('typesList', '')
+        
+        #create de pagination object
+        page_link = create_page_link(page_size,page,text_search,sort_property,sort_order)
+
+        sensors = get_all_sensors(page_link,statusList=statusList,typesList=typesList)
+
+        return sensors
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+         return server_error_message(details=str(e))
 
 @sensor_bp.route('/sensors/<int:id>', methods=['GET'])
 def get_sensor(id):
     try:
         sensor = get_sensor_by_id(id)
-        return jsonify(sensor), 200
+        return sensor
     except ValueError as ve:
-        return jsonify({'error': str(ve)}), 404  # Nodo no encontrado
+        return not_found_message(details=str(ve))
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return server_error_message(details=str(e))
 
 @sensor_bp.route('/sensors', methods=['POST'])
 def create_sensors():
     try:
-        sensor = create_sensor(request.json)
-        return jsonify(sensor), 201
-    except ValueError as ve:
-        return jsonify({'error': str(ve)}), 400  # Error de validación
+        try:
+            req = sensor_schema.load(request.json)
+        except Exception as e:
+            return bad_request_message(details=str(e))
+        
+        return create_sensor(req)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return server_error_message(details=str(e))
 
 @sensor_bp.route('/sensors/<int:id>', methods=['PUT'])
 def update_sensor_route(id):
     try:
-        sensor = update_sensor(id, request.json)
-        return jsonify(sensor), 200
-    except ValueError as ve:
-        return jsonify({'error': str(ve)}), 404  # Nodo no encontrado
+
+        try:
+            req = sensor_schema.load(request.json, partial=True)
+        except Exception as e:
+            return bad_request_message(details=str(e))
+    
+        response = update_sensor(id, request.json)
+        
+        return response
+    except ValueError as e:
+        return not_found_message(details=e)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return server_error_message(details=str(e))
 
 @sensor_bp.route('/sensors/<int:id>', methods=['DELETE'])
 def delete_sensor_route(id):
@@ -53,6 +84,6 @@ def delete_sensor_route(id):
         delete_sensor(id)
         return '', 204
     except ValueError as ve:
-        return jsonify({'error': str(ve)}), 404  # Nodo no encontrado
+        return not_found_message(details=ve)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return server_error_message(details=str(e))

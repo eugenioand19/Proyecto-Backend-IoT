@@ -5,6 +5,11 @@ from app.models.user import User
 class UserSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = User
+        load_instance = True
+
+class UserSchemaView(SQLAlchemyAutoSchema):
+    class Meta:
+        model = User
         exclude = ('password',)
         load_instance = True
 

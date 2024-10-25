@@ -1,16 +1,19 @@
 
 from app.models.user import User
-from app.schemas.user_schema import UserSchema
+from app.schemas.user_schema import UserSchema, UserSchemaView
+from app.services.role_service import get_role_by_id
+from app.utils.error.error_handlers import ResourceNotFound,ValidationErrorExc
 from db import db
 from marshmallow import ValidationError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import or_,asc, desc
 import re
 from app.utils.error.error_responses import *
-from app.utils.success_responses import created_ok_message,pagination_response
+from app.utils.success_responses import created_ok_message,pagination_response,ok_message
 
 user_schema = UserSchema()
-user_schema_many = UserSchema(many=True)
+user_schema_many = UserSchemaView(many=True)
+user_schema_view = UserSchemaView()
 
 def get_users_service(pagelink):
     try:
@@ -25,99 +28,93 @@ def get_users_service(pagelink):
         
         return pagination_response(users_paginated.total,users_paginated.pages,users_paginated.page,users_paginated.per_page,data=data)
     except Exception as e:
-        raise Exception("Error al obtener los nodos de sensores") from e
+        raise Exception("Error al obtener los usuarios") from e
 
 def get_user_by_id(user_id):
     try:
         user = User.query.get(user_id)
         if not user:
             raise ValueError("User not found")
-        return user_schema.dump(user)
+        return user_schema_view.dump(user)
     except ValueError as ve:
         raise ve
     except Exception as e:
-        raise Exception("Error al obtener el nodo de sensor") from e
+        raise Exception("Error al obtener el usuario") from e
 
 def create_user(data):
     try:
-        user_data = user_schema.load(data)  # Aquí se lanzará un ValidationError si falla
-
-        """ existing_user = User.query.filter_by(email=data['email']).first()
-        if existing_user:
-            raise ValueError("El correo electrónico ya está registrado.") """
         
-        name = data.get("name")
+
+        validate_user_data(data)
+        
+        first_name = data.get("first_name")
+        second_name = data.get("second_name","")
         last_name = data.get("last_name")
+        second_last_name = data.get("second_last_name","")
         email = data.get("email")
         password = data.get("password")
-
-        check, message = check_password(password)
-
-        if check:
-            pass
-        else:
-            raise ValueError(message)
+        role_id = data.get("role_id")
 
         user = User(
-            name = name,
+            first_name = first_name,
+            second_name = second_name,
             last_name = last_name,
-            email = email
+            second_last_name = second_last_name,
+            email = email,
+            role_id = role_id
         )
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
         return created_ok_message(message="El usuario fue creado exitosamente.")
-    except ValidationError as ve:
+    except ValidationErrorExc as ve:
         db.session.rollback()
-        return bad_request_message()
+        return bad_request_message(details=str(ve))
+    except ValueError as va:
+        return conflict_message(details=va)
     except IntegrityError as ie:
         db.session.rollback()
-        return conflict_message() 
-    
-    except ValueError as ie:
+        return conflict_message(details=ie) 
+    except ResourceNotFound as e:
         db.session.rollback()
-        return { 
-                    "data": [{ "errors":[ 
-                { 
-                    "code":400,
-                    "message": "",
-                }
-            ]}],
-            "message": str(ie)
-           
-        },400
-    except Exception as e:
-        db.session.rollback()
-        return {
-            "message": "An unexpected error occurred. Please try again later.",
-            "technical_message": str(e)  # General error message
-        }, 500
+        return not_found_message(details=e,entity="Rol") 
 
 def update_user(user_id, data):
     try:
         user = User.query.get(user_id)
         if not user:
-            raise ValueError("User not found")
+            raise ResourceNotFound("User not found")
+        
+        # Realizar las validaciones comunes
+        validate_user_data(data, user)
+
+        
+        # Actualizar el usuario
         user = user_schema.load(data, instance=user, partial=True)
         db.session.commit()
-        return user_schema.dump(user)
-    except ValidationError as ve:
-        raise ValueError("Error en la validación de los datos") from ve
-    except Exception as e:
+
+        return ok_message()
+    except ValidationErrorExc as ve:
         db.session.rollback()
-        raise Exception("Error al actualizar el nodo de sensor") from e
+        return bad_request_message(message= str(ve),details=str(ve))
+    except IntegrityError as ie:
+        db.session.rollback()
+        return conflict_message(details=ie)
+    except ResourceNotFound as e:
+        db.session.rollback()
+        return not_found_message(details=e, entity="Rol O Usuario")
 
 def delete_user(user_id):
     try:
         user = User.query.get(user_id)
         if not user:
-            raise ValueError("User not found")
+            raise ResourceNotFound("Usuario not found")
         db.session.delete(user)
         db.session.commit()
-        return True
-    except Exception as e:
+        return '',204
+    except ResourceNotFound as e:
         db.session.rollback()
-        raise Exception("Error al eliminar el nodo de sensor") from e
+        return not_found_message(details=e, entity="Usuario")
 
 def check_password(password):
     # Password requirements
@@ -164,3 +161,28 @@ def apply_filters_and_pagination(query, text_search=None, sort_order=None):
             query = query.order_by(desc(sort_order.property_name))
     
     return query
+
+def validate_user_data(data, user=None):
+    # Verificar si el correo ya existe
+    if data.get("email"):
+        existing_user = User.query.filter_by(email=data['email']).first()
+        if existing_user and (user is None or existing_user.user_id != user.user_id):
+            
+            raise ValueError("El correo electrónico ya está registrado.")
+    
+
+    # Validar si el rol existe
+    if data.get("role_id"):
+        role_id = data.get("role_id")
+        if role_id and not get_role_by_id(role_id):
+            raise ResourceNotFound("Role not found")
+
+    # Verificar la contraseña solo si se está actualizando o creando
+    if data.get("password"):
+        password = data.get("password")
+        if password:
+            check, message = check_password(password)
+            if not check:
+                raise ValidationErrorExc(str(message))
+
+    return True

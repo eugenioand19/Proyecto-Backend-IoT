@@ -6,11 +6,12 @@ from app.services.wetland_service import (
     update_wetland,
     delete_wetland
 )
-from app.schemas.wetland_schema import WetlandQuerySchema
+from app.schemas.wetland_schema import WetlandQuerySchema,WetlandSchema
 from app.utils.error.error_responses import *
 from app.utils.pagination.page_link import create_page_link
 wetland_bp = Blueprint('wetland', __name__, url_prefix='/api')
 
+wetland_schema = WetlandSchema()
 @wetland_bp.route('/wetlands', methods=['GET'])
 def get_wetlands():
     try:
@@ -33,46 +34,50 @@ def get_wetlands():
         page_link = create_page_link(page_size,page,text_search,sort_property,sort_order)
 
         wetlands = get_all_wetlands(page_link,statusList=statusList)
-        return jsonify(wetlands), 200
+        return wetlands
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+         return server_error_message(details=str(e))
 
 @wetland_bp.route('/wetlands/<int:id>', methods=['GET'])
 def get_wetland(id):
     try:
         wetland = get_wetland_by_id(id)
-        return jsonify(wetland), 200
-    except ValueError as ve:
-        return jsonify({'error': str(ve)}), 404  # Nodo no encontrado
+        return wetland
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return server_error_message(details=str(e))
 
 @wetland_bp.route('/wetlands', methods=['POST'])
 def create_wetlands():
     try:
-        wetland = create_wetland(request.json)
-        return jsonify(wetland), 201
-    except ValueError as ve:
-        return jsonify({'error': str(ve)}), 400  # Error de validación
+        try:
+            req = wetland_schema.load(request.json)
+        except Exception as e:
+            return bad_request_message(details=str(e))
+        
+        return create_wetland(req)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return server_error_message(details=str(e))
 
 @wetland_bp.route('/wetlands/<int:id>', methods=['PUT'])
 def update_wetland_route(id):
     try:
-        wetland = update_wetland(id, request.json)
-        return jsonify(wetland), 200
-    except ValueError as ve:
-        return jsonify({'error': str(ve)}), 404  # Nodo no encontrado
+
+        try:
+            req = wetland_schema.load(request.json, partial=True)
+        except Exception as e:
+            return bad_request_message(details=str(e))
+        
+        response = update_wetland(id, request.json)
+        
+        return response
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return server_error_message(details=str(e))
 
 @wetland_bp.route('/wetlands/<int:id>', methods=['DELETE'])
 def delete_wetland_route(id):
     try:
-        delete_wetland(id)
-        return '', 204
-    except ValueError as ve:
-        return jsonify({'error': str(ve)}), 404  # Nodo no encontrado
+        
+        return delete_wetland(id)
+
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return server_error_message(details=str(e))

@@ -1,13 +1,13 @@
 from flask_marshmallow.sqla import SQLAlchemyAutoSchema
-from app.models.role import Role
-from marshmallow import Schema, fields, validate
+from app.models.permission import Permission
+from marshmallow import Schema, ValidationError, fields, validate
 
-class RoleSchema(SQLAlchemyAutoSchema):
+class PermissionSchema(SQLAlchemyAutoSchema):
     class Meta:
-        model = Role
+        model = Permission
         load_instance = True
 
-class RoleQuerySchema(Schema):
+class PermissionQuerySchema(Schema):
     page_size = fields.Int(required=True, description="Page size", validate=validate.Range(min=1))
     page = fields.Int(required=True, description="Page number", validate=validate.Range(min=1))
     text_search = fields.Str(required=False, description="Search query")
@@ -15,3 +15,7 @@ class RoleQuerySchema(Schema):
                                validate=validate.OneOf(["created_at", "name","description"]))
     sort_order = fields.Str(required=False, description="Sort order", 
                             validate=validate.OneOf(["ASC", "DESC"]))
+
+class PermissionQuerySelectSchema(Schema):
+    text_search = fields.Str(required=False, description="Search query")
+    
