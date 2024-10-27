@@ -27,18 +27,13 @@ def get_all_wetlands(pagelink,statusList):
         raise Exception(str(e))
 
 def get_wetland_by_id(wetland_id):
-    try:
-        wetland = Wetland.query.get(wetland_id)
-        print(wetland)
-        if not wetland:
-            raise ResourceNotFound("Humedal no encontrado")
-        return (wetland_schema.dump(wetland))
-    except ResourceNotFound as e:
-        return not_found_message(entity="Humedal")
+    wetland = Wetland.query.get(wetland_id)
+    if not wetland:
+        raise ResourceNotFound("Humedal no encontrado")
+    return wetland_schema.dump(wetland)
     
 def create_wetland(data):
     try:
-      
         db.session.add(data)
         db.session.commit()
         return created_ok_message(message="El humedal ha sido creado correctamente!")

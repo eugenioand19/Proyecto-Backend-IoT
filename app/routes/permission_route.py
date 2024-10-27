@@ -22,7 +22,7 @@ def get_permissions():
         except Exception as e:
             return bad_request_message(details=str(e))
         
-         #get se params
+        #get se params
         page_size = params['page_size']
         page = params['page']
         text_search = params.get('text_search', '')
@@ -36,7 +36,7 @@ def get_permissions():
         permissions = get_all_permissions(page_link)
         return permissions
     except Exception as e:
-         return server_error_message(details=str(e))
+        return server_error_message(details=str(e))
 
 @permission_bp.route('/permissions-select', methods=['GET'])
 def get_permissions_select():
@@ -47,7 +47,7 @@ def get_permissions_select():
         except Exception as e:
             return bad_request_message(details=str(e))
         
-         #get se params
+        #get se params
         text_search = params.get('text_search', '')
 
         
@@ -57,15 +57,13 @@ def get_permissions_select():
         permissions = get_all_permissions_select(text_search)
         return permissions
     except Exception as e:
-         return server_error_message(details=str(e))
+        return server_error_message(details=str(e))
 
 @permission_bp.route('/permissions/<int:id>', methods=['GET'])
 def get_permission(id):
     try:
         permission = get_permission_by_id(id)
         return permission
-    except ValueError as ve:
-        return not_found_message(details=str(ve))
     except Exception as e:
         return server_error_message(details=str(e))
 
@@ -93,17 +91,12 @@ def update_permission_route(id):
         response = update_permission(id, request.json)
         
         return response
-    except ValueError as e:
-        return not_found_message(details=e)
     except Exception as e:
         return server_error_message(details=str(e))
 
 @permission_bp.route('/permissions/<int:id>', methods=['DELETE'])
 def delete_permission_route(id):
     try:
-        delete_permission(id)
-        return '', 204
-    except ValueError as ve:
-        return not_found_message(details=ve)
+        return delete_permission(id)
     except Exception as e:
         return server_error_message(details=str(e))

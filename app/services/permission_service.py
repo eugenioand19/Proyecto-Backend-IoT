@@ -2,8 +2,9 @@
 from sqlalchemy import asc, desc, or_
 from app.models.permission import Permission
 from app.schemas.permission_schema import PermissionSchema
+from app.utils.error.error_handlers import ResourceNotFound
 from app.utils.success_responses import pagination_response,created_ok_message,ok_message
-from app.utils.error.error_responses import bad_request_message,server_error_message
+from app.utils.error.error_responses import bad_request_message, conflict_message, not_found_message,server_error_message, unauthorized_message
 from db import db
 
 
@@ -54,44 +55,53 @@ def get_permission_by_id(permission_id):
     except ValueError as e:
         raise ValueError("Permission not found")
     
+def get_permission_by_id(permission_id):
+    permission = Permission.query.get(permission_id)
+    if not permission:
+        raise ResourceNotFound("Permiso no encontrado")
+    return permission_schema.dump(permission)
+    
 def create_permission(data):
     try:
-      
+        if Permission.query.filter_by(code=data.code).first():
+            return conflict_message(details="Ya existe un Permiso con ese Codigo.")
         db.session.add(data)
         db.session.commit()
-        return created_ok_message(message="El permiiso ha sido creado correctamente!")
+        return created_ok_message(message="El Permiso ha sido creado correctamente!")
     except Exception as err:
         db.session.rollback()
         return server_error_message(details=str(err))
 
 def update_permission(permission_id, data):
     try:
+
         permission = Permission.query.get(permission_id)
+
         if not permission:
-            raise ValueError("Permission not found")
+            raise ResourceNotFound("Permiso no encontrado")
+        
+        if data.get("code"):
+            return unauthorized_message(details="Acceso no Autotizado")
+        
         permission = permission_schema.load(data, instance=permission, partial=True)
         db.session.commit()
         return ok_message()
-    except ValueError as err:
-        raise ValueError("Permission not found")
-    except Exception as e:
+    except ResourceNotFound as e:
         db.session.rollback()
-        raise Exception(str(e)) 
+        return not_found_message(details=e,entity="Permiso")
+
 
 def delete_permission(permission_id):
     try:
         permission = Permission.query.get(permission_id)
         if not permission:
-            raise ValueError("Permission not found")
+            raise ResourceNotFound("Permiso no encontrado")
+        
         db.session.delete(permission)
         db.session.commit()
-        return True
-    except ValueError as err:
-        db.session.rollback()
-        raise ValueError("Permission not found")
-    except Exception as e:
-        db.session.rollback()
-        raise Exception(str(e))
+        return '',204
+    except ResourceNotFound as e:
+        return not_found_message(details=str(e),entity="Permiso")
 
 def apply_filters_and_pagination(query, text_search=None, sort_order=None):
     

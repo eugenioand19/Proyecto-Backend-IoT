@@ -7,6 +7,7 @@ from app.services.wetland_service import (
     delete_wetland
 )
 from app.schemas.wetland_schema import WetlandQuerySchema,WetlandSchema
+from app.utils.error.error_handlers import ResourceNotFound
 from app.utils.error.error_responses import *
 from app.utils.pagination.page_link import create_page_link
 wetland_bp = Blueprint('wetland', __name__, url_prefix='/api')
@@ -43,6 +44,8 @@ def get_wetland(id):
     try:
         wetland = get_wetland_by_id(id)
         return wetland
+    except ResourceNotFound as e:
+        return not_found_message(entity="Humedal", details=str(e))
     except Exception as e:
         return server_error_message(details=str(e))
 

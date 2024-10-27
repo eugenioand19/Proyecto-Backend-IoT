@@ -7,6 +7,7 @@ from app.services.alert_service import (
     delete_alert
 )
 from app.schemas.alert_schema import AlertQuerySchema,AlertSchema
+from app.utils.error.error_handlers import ResourceNotFound
 from app.utils.error.error_responses import *
 from app.utils.pagination.page_link import create_time_page_link
 alert_bp = Blueprint('alert', __name__, url_prefix='/api')
@@ -39,15 +40,15 @@ def get_alerts():
 
         return alerts
     except Exception as e:
-         return server_error_message(details=str(e))
+        return server_error_message(details=str(e))
 
 @alert_bp.route('/alerts/<int:id>', methods=['GET'])
 def get_alert(id):
     try:
         alert = get_alert_by_id(id)
         return alert
-    except ValueError as ve:
-        return not_found_message(details=str(ve))
+    except ResourceNotFound as e:
+        return not_found_message(entity="Alerta", details=str(e))
     except Exception as e:
         return server_error_message(details=str(e))
 
@@ -61,7 +62,6 @@ def create_alerts():
         
         return create_alert(req)
     except Exception as e:
-        print("jshfsf")
         return server_error_message(details=str(e))
 
 @alert_bp.route('/alerts/<int:id>', methods=['PUT'])
@@ -76,17 +76,12 @@ def update_alert_route(id):
         response = update_alert(id, request.json)
         
         return response
-    except ValueError as e:
-        return not_found_message(details=e)
     except Exception as e:
         return server_error_message(details=str(e))
 
 @alert_bp.route('/alerts/<int:id>', methods=['DELETE'])
 def delete_alert_route(id):
     try:
-        delete_alert(id)
-        return '', 204
-    except ValueError as ve:
-        return not_found_message(details=ve)
+        return delete_alert(id)
     except Exception as e:
         return server_error_message(details=str(e))

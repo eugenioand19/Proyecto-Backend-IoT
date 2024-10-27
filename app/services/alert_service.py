@@ -6,8 +6,7 @@ from app.services.node_service import get_node_by_id
 from app.utils.error.error_handlers import ResourceNotFound
 from db import db
 from app.utils.success_responses import pagination_response,created_ok_message,ok_message
-from app.utils.error.error_responses import bad_request_message, not_found_message,server_error_message
-from marshmallow import ValidationError
+from app.utils.error.error_responses import  not_found_message
 from app.services.wetland_service import get_wetland_by_id
 import time
 alert_schema = AlertSchema()
@@ -31,14 +30,11 @@ def get_all_alerts(pagelink,statusList,severityList):
 
 
 
-def get_alert_by_id(alert_id):
-    try:
-        alert = Alert.query.get(alert_id)
-        if not alert:
-            raise ResourceNotFound("Alerta no encontrada")
-        return (alert_schema.dump(alert))
-    except ResourceNotFound as e:
+def get_alert_by_id(node_id):
+    node = Alert.query.get(node_id)
+    if not node:
         raise ResourceNotFound("Alerta no encontrada")
+    return alert_schema.dump(node)
     
 def create_alert(data):
     try:
@@ -50,42 +46,36 @@ def create_alert(data):
         
         db.session.add(data)
         db.session.commit()
-        return created_ok_message(message="El Nodo ha sido creado correctamente!")
+        return created_ok_message(message="La alerta ha sido creado correctamente!")
     except ResourceNotFound as e:
         return not_found_message(entity="Nodo", details=str(e))
 
 def update_alert(alert_id, data):
     try:
-        if not get_node_by_id(data.node_id):
+        if not get_node_by_id(data.get("node_id")):
             raise ResourceNotFound("Nodo no encontrado")
-        alert = get_alert_by_id(alert_id)
+        
+        if get_alert_by_id(alert_id):
+            alert = Alert.query.get(alert_id)
         
         if not alert:
             raise ResourceNotFound("Alerta no encontrada")
+        
         alert = alert_schema.load(data, instance=alert, partial=True)
         db.session.commit()
         return ok_message()
-    except ValueError as err:
-        raise ValueError(err)
-    except Exception as e:
-        db.session.rollback()
-        raise Exception(str(e)) 
+    except ResourceNotFound as err:
+        return  not_found_message(entity="Nodo o Alerta", details=err)
 
 def delete_alert(alert_id):
-    try:
+
         alert = Alert.query.get(alert_id)
         if not alert:
-            raise ValueError("Alert not found")
+            return not_found_message(entity="Alerta", details=str("Alerta no encontrada"))
         db.session.delete(alert)
         db.session.commit()
-        return True
-    except ValueError as err:
-        db.session.rollback()
-        raise ValueError("Alert not found")
-    except Exception as e:
-        db.session.rollback()
-        raise Exception(str(e))
-
+        return '',204
+    
 def apply_filters_and_pagination(query, text_search=None, sort_order=None, statusList=None,severityList=None,starTime=None,endTime=None):
     
     
@@ -101,21 +91,15 @@ def apply_filters_and_pagination(query, text_search=None, sort_order=None, statu
             Alert.status.in_(statusList)
         ))
     
-
-
-
     if starTime and endTime:
         
         start_time_dt = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(float(starTime)/1000))
         end_time_dt = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(float(endTime)/1000))
-        
-        #query = Alert.query.filter(Alert.alert_date >= start_time_dt, Alert.alert_date <= end_time_dt)
         query = Alert.query.filter(Alert.alert_date.between(start_time_dt, end_time_dt))
 
 
 
     if text_search:
-       
         search_filter = or_(
             Alert.description.ilike(f'%{text_search}%')
         )

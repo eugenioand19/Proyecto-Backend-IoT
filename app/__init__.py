@@ -9,6 +9,9 @@ from db import db
 from flask_marshmallow import Marshmallow
 from app.routes.user_route import user_bp
 from flask_jwt_extended import JWTManager
+from flasgger import Swagger
+
+
 
 app = Flask(__name__)
 
@@ -26,11 +29,13 @@ def init_app(config):
     """ with app.app_context():
         db.create_all()
      """
+    swagger = Swagger(app)
     register_blueprints(app)
     #app.register_blueprint(user_bp)
     # Registrar los manejadores de errores
     register_error_handlers(app)  # Aquí se usan los manejadores de errores
 
+    
     """ if __name__ == "__main__":
         app.run(debug=True) """
     

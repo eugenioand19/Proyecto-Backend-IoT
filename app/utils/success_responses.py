@@ -9,3 +9,4 @@ def ok_message(data = {}, message = "Operacion Realizada Correctamente"):
 
 def pagination_response(total,total_pages,current_page,per_page, code = 200, message="Sucess.",data={}):
     return(json_structure_pagination(total,total_pages,current_page,per_page, code = code, message=message,data=data))
+

@@ -4,7 +4,7 @@ from app.models.permission import Permission
 
 class Role(db.Model):
     __tablename__ = 'role'
-    role_id = db.Column(db.Integer, primary_key=True)
+    role_id = db.Column(db.Integer, primary_key=True,autoincrement= True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(500), nullable=True)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())

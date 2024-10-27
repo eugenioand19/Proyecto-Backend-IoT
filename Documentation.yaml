@@ -1,0 +1,1093 @@
+openapi: 3.0.0
+info:
+  title: Monitoreo de Usuarios y Humedales API
+  version: 1.0.0
+  description: API para la gestión de usuarios y monitoreo de humedales
+
+tags:
+  - name: Users
+    description: Operaciones relacionadas con usuarios
+  - name: Wetlands
+    description: Operaciones relacionadas con humedales
+  - name: Nodes
+    description: Operaciones relacionadas con los nodos en el sistema de monitoreo
+  - name: Sensors
+    description: Operaciones relacionadas con los sensores en el sistema de monitoreo
+  - name: Roles
+    description: Operaciones relacionadas con los Roles del sistema
+  - name: Permission
+    description: Operaciones relacionadas con los Permisos del sistema
+
+
+paths:
+  /api/users:
+    get:
+      tags:
+        - Users
+      summary: Obtener lista de usuarios
+      parameters:
+        - name: page_size
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: Tamaño de la página
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: Número de la página
+        - name: text_search
+          in: query
+          schema:
+            type: string
+          description: Texto de búsqueda
+        - name: sort_property
+          in: query
+          schema:
+            type: string
+            enum: [created_at, name, last_name, email, role]
+          description: Propiedad para ordenar
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [ASC, DESC]
+          description: Orden de clasificación
+      responses:
+        '200':
+          description: Lista de usuarios obtenida
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserSchemaView'
+    post:
+      tags:
+        - Users
+      summary: Crear un nuevo usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSchema'
+      responses:
+        '201':
+          description: Usuario creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSchemaView'
+
+  /api/users/{user_id}:
+    get:
+      tags:
+        - Users
+      summary: Obtener usuario por ID
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID del usuario
+      responses:
+        '200':
+          description: Usuario obtenido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSchemaView'
+    put:
+      tags:
+        - Users
+      summary: Actualizar usuario
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID del usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSchema'
+      responses:
+        '200':
+          description: Usuario actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSchemaView'
+    delete:
+      tags:
+        - Users
+      summary: Eliminar usuario
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID del usuario
+      responses:
+        '204':
+          description: Usuario eliminado
+
+  /api/wetlands:
+    get:
+      tags:
+        - Wetlands
+      summary: Obtener lista de humedales
+      parameters:
+        - name: page_size
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: Tamaño de la página
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: Número de la página
+        - name: text_search
+          in: query
+          schema:
+            type: string
+          description: Texto de búsqueda
+        - name: sort_property
+          in: query
+          schema:
+            type: string
+            enum: [created_at, status, name, location]
+          description: Propiedad para ordenar
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [ASC, DESC]
+          description: Orden de clasificación
+        - name: statusList
+          in: query
+          schema:
+            type: string
+          description: Lista separada por comas de estados de humedales
+      responses:
+        '200':
+          description: Lista de humedales obtenida
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WetlandSchema'
+    post:
+      tags:
+        - Wetlands
+      summary: Crear un nuevo humedal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WetlandSchema'
+      responses:
+        '201':
+          description: Humedal creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WetlandSchema'
+
+  /api/wetlands/{wetland_id}:
+    get:
+      tags:
+        - Wetlands
+      summary: Obtener humedal por ID
+      parameters:
+        - name: wetland_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del humedal
+      responses:
+        '200':
+          description: Humedal obtenido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WetlandSchema'
+    put:
+      tags:
+        - Wetlands
+      summary: Actualizar humedal
+      parameters:
+        - name: wetland_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del humedal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WetlandSchema'
+      responses:
+        '200':
+          description: Humedal actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WetlandSchema'
+    delete:
+      tags:
+        - Wetlands
+      summary: Eliminar humedal
+      parameters:
+        - name: wetland_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del humedal
+      responses:
+        '204':
+          description: Humedal eliminado
+
+  /api/nodes:
+    get:
+      tags:
+        - Nodes
+      summary: Obtener lista de nodos
+      parameters:
+        - name: page_size
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: Tamaño de la página
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: Número de la página
+        - name: text_search
+          in: query
+          schema:
+            type: string
+          description: Consulta de búsqueda de texto
+        - name: sort_property
+          in: query
+          schema:
+            type: string
+            enum: [created_at, last_connection, installation_date, status, str_MAC, location, wetland_id]
+          description: Propiedad para ordenar
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [ASC, DESC]
+          description: Orden de clasificación
+        - name: statusList
+          in: query
+          schema:
+            type: string
+          description: Lista de estados, separados por comas
+        - name: TypeList
+          in: query
+          schema:
+            type: string
+          description: Lista de tipos de nodo, separados por comas
+      responses:
+        '200':
+          description: Lista de nodos obtenida
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Node'
+    post:
+      tags:
+        - Nodes
+      summary: Crear un nuevo nodo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Node'
+      responses:
+        '201':
+          description: Nodo creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Node'
+
+  /api/nodes/{node_id}:
+    get:
+      tags:
+        - Nodes
+      summary: Obtener nodo por ID
+      parameters:
+        - name: node_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del nodo
+      responses:
+        '200':
+          description: Nodo obtenido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Node'
+    put:
+      tags:
+        - Nodes
+      summary: Actualizar nodo
+      parameters:
+        - name: node_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del nodo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Node'
+      responses:
+        '200':
+          description: Nodo actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Node'
+    delete:
+      tags:
+        - Nodes
+      summary: Eliminar nodo
+      parameters:
+        - name: node_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del nodo
+      responses:
+        '204':
+          description: Nodo eliminado
+  /api/nodes/{node_id}/update_sensors:
+    post:
+      tags:
+        - Nodes
+      summary: Asignar sensores a un nodo
+      parameters:
+        - name: node_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del nodo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SensorsListSchema'
+      responses:
+        '200':
+          description: Sensores asignados exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Sensores asignados exitosamente"
+        '400':
+          description: Error en los datos de la solicitud
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Error en los datos de la solicitud"
+                  details:
+                    type: string
+                    example: "Descripción detallada del error"
+
+  /api/sensors:
+    get:
+      tags:
+        - Sensors
+      summary: Obtener lista de sensores
+      parameters:
+        - name: page_size
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: Tamaño de la página
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: Número de la página
+        - name: text_search
+          in: query
+          schema:
+            type: string
+          description: Consulta de búsqueda de texto
+        - name: sort_property
+          in: query
+          schema:
+            type: string
+            enum: [created_at, name]
+          description: Propiedad para ordenar
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [ASC, DESC]
+          description: Orden de clasificación
+        - name: statusList
+          in: query
+          schema:
+            type: string
+          description: Lista separada por comas de estados de sensores
+        - name: typesList
+          in: query
+          schema:
+            type: string
+          description: Lista separada por comas de tipos de sensores
+      responses:
+        '200':
+          description: Lista de sensores obtenida
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Sensor'
+    post:
+      tags:
+        - Sensors
+      summary: Crear un nuevo sensor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SensorSchema'
+      responses:
+        '201':
+          description: Sensor creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sensor'
+
+  /api/sensors/{sensor_id}:
+    get:
+      tags:
+        - Sensors
+      summary: Obtener sensor por ID
+      parameters:
+        - name: sensor_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del sensor
+      responses:
+        '200':
+          description: Sensor obtenido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sensor'
+    put:
+      tags:
+        - Sensors
+      summary: Actualizar sensor
+      parameters:
+        - name: sensor_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del sensor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SensorSchema'
+      responses:
+        '200':
+          description: Sensor actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sensor'
+    delete:
+      tags:
+        - Sensors
+      summary: Eliminar sensor
+      parameters:
+        - name: sensor_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del sensor
+      responses:
+        '204':
+          description: Sensor eliminado
+  /api/roles:
+    get:
+      tags:
+        - Roles
+      summary: Obtener todos los roles con paginación
+      parameters:
+        - in: query
+          name: page_size
+          required: true
+          schema:
+            type: integer
+          description: Tamaño de página
+        - in: query
+          name: page
+          required: true
+          schema:
+            type: integer
+          description: Número de página
+        - in: query
+          name: text_search
+          schema:
+            type: string
+          description: Texto de búsqueda
+        - in: query
+          name: sort_property
+          schema:
+            type: string
+            enum: [created_at, name, description]
+          description: Propiedad para ordenar
+        - in: query
+          name: sort_order
+          schema:
+            type: string
+            enum: [ASC, DESC]
+          description: Orden de clasificación
+      responses:
+        '200':
+          description: Lista de roles obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Role'
+    post:
+      tags:
+        - Roles
+      summary: Crear un nuevo rol
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Role'
+      responses:
+        '201':
+          description: Rol creado exitosamente
+
+  /api/roles/{id}:
+    get:
+      tags:
+        - Roles
+      summary: Obtener un rol específico por ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del rol
+      responses:
+        '200':
+          description: Rol obtenido exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+    put:
+      tags:
+        - Roles
+      summary: Actualizar un rol existente
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del rol
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Role'
+      responses:
+        '200':
+          description: Rol actualizado exitosamente
+    delete:
+      tags:
+        - Roles
+      summary: Eliminar un rol específico
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del rol
+      responses:
+        '204':
+          description: Rol eliminado exitosamente
+
+  /api/roles/{role_id}/update_permissions:
+    post:
+      tags:
+        - Roles
+      summary: Asignar permisos a un rol
+      parameters:
+        - in: path
+          name: role_id
+          required: true
+          schema:
+            type: integer
+          description: ID del rol
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PermissionListSchema'
+      responses:
+        '200':
+          description: Permisos asignados exitosamente al rol
+
+  /api/permissions:
+    get:
+      tags:
+        - Permissions
+      summary: Obtener todos los permisos con paginación
+      parameters:
+        - in: query
+          name: page_size
+          required: true
+          schema:
+            type: integer
+          description: Tamaño de página
+        - in: query
+          name: page
+          required: true
+          schema:
+            type: integer
+          description: Número de página
+        - in: query
+          name: text_search
+          schema:
+            type: string
+          description: Texto de búsqueda
+        - in: query
+          name: sort_property
+          schema:
+            type: string
+            enum: [created_at, name, description]
+          description: Propiedad para ordenar
+        - in: query
+          name: sort_order
+          schema:
+            type: string
+            enum: [ASC, DESC]
+          description: Orden de clasificación
+      responses:
+        '200':
+          description: Lista de permisos obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Permission'
+    post:
+      tags:
+        - Permissions
+      summary: Crear un nuevo permiso
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Permission'
+      responses:
+        '201':
+          description: Permiso creado exitosamente
+
+  /api/permissions/{id}:
+    get:
+      tags:
+        - Permissions
+      summary: Obtener un permiso específico por ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del permiso
+      responses:
+        '200':
+          description: Permiso obtenido exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Permission'
+    put:
+      tags:
+        - Permissions
+      summary: Actualizar un permiso existente
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del permiso
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Permission'
+      responses:
+        '200':
+          description: Permiso actualizado exitosamente
+    delete:
+      tags:
+        - Permissions
+      summary: Eliminar un permiso específico
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del permiso
+      responses:
+        '204':
+          description: Permiso eliminado exitosamente
+
+  /api/permissions-select:
+    get:
+      tags:
+        - Permissions
+      summary: Obtener permisos con búsqueda
+      parameters:
+        - in: query
+          name: text_search
+          schema:
+            type: string
+          description: Texto de búsqueda
+      responses:
+        '200':
+          description: Permisos filtrados obtenidos exitosamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Permission'
+
+components:
+  schemas:
+    UserSchema:
+      type: object
+      properties:
+        name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        role:
+          type: string
+          enum: [Admin, User, Moderator]
+      required:
+        - name
+        - last_name
+        - email
+        - password
+    UserSchemaView:
+      type: object
+      properties:
+        user_id:
+          type: string
+        name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [Admin, User, Moderator]
+    WetlandSchema:
+      type: object
+      properties:
+        name:
+          type: string
+        location:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE]
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - name
+        - location
+        - status
+    Node:
+      type: object
+      properties:
+        node_id:
+          type: integer
+        str_MAC:
+          type: string
+        wetland_id:
+          type: integer
+        location:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE]
+        last_connection:
+          type: string
+          format: date-time
+        installation_date:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - str_MAC
+        - wetland_id
+        - location
+        - status
+    Sensor:
+      type: object
+      properties:
+        sensor_id:
+          type: integer
+        name:
+          type: string
+        type_sensor:
+          type: string
+          enum: [PH, OD, TEMP, TURB, CAUD_EN, CAUD_SAL]
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE]
+        purchase_date:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - name
+        - type_sensor
+        - status
+    SensorSchema:
+      type: object
+      properties:
+        name:
+          type: string
+        type_sensor:
+          type: string
+          enum: [PH, OD, TEMP, TURB, CAUD_EN, CAUD_SAL]
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE]
+      required:
+        - name
+        - type_sensor
+        - status
+    SensorsListSchema:
+      type: object
+      properties:
+        sensors:
+          type: array
+          items:
+            type: integer
+      required:
+        - sensors
+    schemas:
+    Role:
+      type: object
+      properties:
+        role_id:
+          type: integer
+          description: ID del rol
+        name:
+          type: string
+          maxLength: 100
+          description: Nombre del rol
+        description:
+          type: string
+          maxLength: 500
+          description: Descripción del rol
+        created_at:
+          type: string
+          format: date-time
+          description: Fecha de creación del rol
+        updated_at:
+          type: string
+          format: date-time
+          description: Fecha de última actualización del rol
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Permission'
+
+    Permission:
+      type: object
+      properties:
+        permission_id:
+          type: integer
+          description: ID del permiso
+        name:
+          type: string
+          maxLength: 100
+          description: Nombre del permiso
+        code:
+          type: string
+          maxLength: 100
+          description: Código único del permiso
+        description:
+          type: string
+          maxLength: 100
+          description: Descripción del permiso
+        created_at:
+          type: string
+          format: date-time
+          description: Fecha de creación del permiso
+        updated_at:
+          type: string
+          format: date-time
+          description: Fecha de última actualización del permiso
+
+    PermissionListSchema:
+      type: object
+      properties:
+        permissions:
+          type: array
+          items:
+            type: integer
+            description: Lista de IDs de permisos asociados al rol
+
+    RoleQuerySchema:
+      type: object
+      properties:
+        page_size:
+          type: integer
+          description: Tamaño de página
+          minimum: 1
+        page:
+          type: integer
+          description: Número de página
+          minimum: 1
+        text_search:
+          type: string
+          description: Texto de búsqueda
+        sort_property:
+          type: string
+          description: Propiedad para ordenar
+          enum: [created_at, name, description]
+        sort_order:
+          type: string
+          description: Orden de clasificación
+          enum: [ASC, DESC]
+
+    PermissionQuerySchema:
+      type: object
+      properties:
+        page_size:
+          type: integer
+          description: Tamaño de página
+          minimum: 1
+        page:
+          type: integer
+          description: Número de página
+          minimum: 1
+        text_search:
+          type: string
+          description: Texto de búsqueda
+        sort_property:
+          type: string
+          description: Propiedad para ordenar
+          enum: [created_at, name, description]
+        sort_order:
+          type: string
+          description: Orden de clasificación
+          enum: [ASC, DESC]
+
+    PermissionQuerySelectSchema:
+      type: object
+      properties:
+        text_search:
+          type: string
+          description: Texto de búsqueda

@@ -30,17 +30,18 @@ def get_all_roles(pagelink):
         raise Exception(str(e))
 
 def get_role_by_id(role_id):
-    try:
-        role = Role.query.get(role_id)
-        if not role:
-            raise ResourceNotFound("Role not found")
-        return (role_schema.dump(role))
-    except ResourceNotFound as e:
-        raise ResourceNotFound("Role not found")
+    role = Role.query.get(role_id)
+    if not role:
+        raise ResourceNotFound("Rol no encontrado")
+    return role_schema.dump(role)
     
 def create_role(data):
     try:
-      
+
+        # Validar si el rol ya existe
+        if Role.query.filter_by(name=data.name).first():
+            return conflict_message(details="Ya existe un rol con ese nombre.")
+    
         db.session.add(data)
         db.session.commit()
         return created_ok_message(message="El Rol ha sido creado correctamente!")
@@ -50,37 +51,39 @@ def create_role(data):
 
 def update_role(role_id, data):
     try:
+
         role = Role.query.get(role_id)
+
         if not role:
-            raise ValueError("Role not found")
+            raise ResourceNotFound("Rol no encontrado")
+        
+        # Validar si el rol ya existe
+        if Role.query.filter_by(name=data.get("name")).first():
+            return conflict_message(details="Ya existe un rol con ese nombre.")
+        
         role = role_schema.load(data, instance=role, partial=True)
         db.session.commit()
         return ok_message()
-    except ValueError as err:
-        raise ValueError("Role not found")
-    except Exception as e:
+    except ResourceNotFound as e:
         db.session.rollback()
-        raise Exception(str(e)) 
+        return not_found_message(details=e,entity="Rol")
+
 
 def delete_role(role_id):
     try:
         role = Role.query.get(role_id)
         if not role:
-            raise ValueError("Role not found")
+            raise ResourceNotFound("Rol no encontrado")
+        
         db.session.delete(role)
         db.session.commit()
-        return True
-    except ValueError as err:
-        db.session.rollback()
-        raise ValueError("Role not found")
-    except Exception as e:
-        db.session.rollback()
-        raise Exception(str(e))
+        return '',204
+    except ResourceNotFound as e:
+        return not_found_message(details=str(e),entity="Rol")
 
 def apply_filters_and_pagination(query, text_search=None, sort_order=None):
     
     if text_search:
-       
         search_filter = or_(
             Role.name.ilike(f'%{text_search}%'),
             Role.description.ilike(f'%{text_search}%')
@@ -100,7 +103,7 @@ def create_role_permission(role_id,data):
     try:
 
         if not get_role_by_id(role_id):
-                raise ValueError("Role not found")
+                raise ResourceNotFound("Role not found")
         
         role = Role.query.get(role_id)
         
@@ -108,14 +111,14 @@ def create_role_permission(role_id,data):
         
         for item in data:
             if not get_permission_by_id(item):
-                raise ValueError("Permission not found")
+                raise ResourceNotFound("Permission not found")
         
         role.permissions = Permission.query.filter(Permission.permission_id.in_(data)).all()
         
         db.session.commit()
         return created_ok_message(message="La asigancion se ha realizado correctamente!")
         
-    except ValueError as e:
+    except ResourceNotFound as e:
         return not_found_message(entity= "Rol o Permiso")
     except IntegrityError as ie:
         db.session.rollback()

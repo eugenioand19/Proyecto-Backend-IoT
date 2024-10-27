@@ -4,7 +4,7 @@ from app.models.sensor_node import SensorNode
 
 class Node(db.Model):
     table_name = 'node'
-    node_id = db.Column(db.Integer, primary_key=True)
+    node_id = db.Column(db.Integer, primary_key=True,autoincrement= True)
     location = db.Column(db.String(500))
     name = db.Column(db.String(100))
     status = db.Column(db.String(50))

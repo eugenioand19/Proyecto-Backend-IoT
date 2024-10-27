@@ -8,8 +8,8 @@ from app.services.node_service import (
     assing_sensors_service
 )
 from marshmallow.exceptions import ValidationError
-from app.schemas.node_schema import NodeQuerySchema,NodeSchema
-from app.utils.error.error_handlers import ValidationErrorExc
+from app.schemas.node_schema import NodeQuerySchema,NodeSchema, SensorsListSchema
+from app.utils.error.error_handlers import ResourceNotFound, ValidationErrorExc
 from app.utils.error.error_responses import *
 from app.utils.pagination.page_link import create_page_link
 node_bp = Blueprint('node', __name__, url_prefix='/api')
@@ -47,6 +47,8 @@ def get_node(id):
     try:
         node = get_node_by_id(id)
         return node
+    except ResourceNotFound as e:
+        return not_found_message(entity="Alerta", details=str(e))
     except Exception as e:
         return server_error_message(details=str(e))
 
@@ -80,8 +82,8 @@ def update_node_route(id):
 @node_bp.route('/nodes/<int:id>', methods=['DELETE'])
 def delete_node_route(id):
     try:
-        delete_node(id)
-        return '', 204
+        
+        return delete_node(id)
     except Exception as e:
         return server_error_message(details=str(e))
     
@@ -89,6 +91,11 @@ def delete_node_route(id):
 @node_bp.route('/nodes/<int:node_id>/update_sensors', methods=['POST'])
 def assing_sensors(node_id):
     
-
+    schema = SensorsListSchema()
+    try:
+        params = schema.load(request.json)
+    except Exception as e:
+        return bad_request_message(details=str(e))
+    
     return assing_sensors_service(node_id,request.json)
     

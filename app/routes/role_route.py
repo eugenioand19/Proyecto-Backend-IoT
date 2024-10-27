@@ -7,7 +7,8 @@ from app.services.role_service import (
     delete_role,
     create_role_permission
 )
-from app.schemas.role_schema import RoleQuerySchema,RoleSchema
+from app.schemas.role_schema import RoleQuerySchema,RoleSchema,PermissionListSchema
+from app.utils.error.error_handlers import ResourceNotFound
 from app.utils.error.error_responses import *
 from app.utils.pagination.page_link import create_page_link
 role_bp = Blueprint('role', __name__, url_prefix='/api')
@@ -22,7 +23,7 @@ def get_roles():
         except Exception as e:
             return bad_request_message(details=str(e))
         
-         #get se params
+        #get se params
         page_size = params['page_size']
         page = params['page']
         text_search = params.get('text_search', '')
@@ -36,15 +37,15 @@ def get_roles():
         roles = get_all_roles(page_link)
         return roles
     except Exception as e:
-         return server_error_message(details=str(e))
+        return server_error_message(details=str(e))
 
 @role_bp.route('/roles/<int:id>', methods=['GET'])
 def get_role(id):
     try:
         role = get_role_by_id(id)
         return role
-    except ValueError as ve:
-        return not_found_message(details=str(ve))
+    except ResourceNotFound as e:
+        return not_found_message(entity="Rol", details=str(e))
     except Exception as e:
         return server_error_message(details=str(e))
 
@@ -72,18 +73,13 @@ def update_role_route(id):
         response = update_role(id, request.json)
         
         return response
-    except ValueError as e:
-        return not_found_message(details=e)
     except Exception as e:
         return server_error_message(details=str(e))
 
 @role_bp.route('/roles/<int:id>', methods=['DELETE'])
 def delete_role_route(id):
     try:
-        delete_role(id)
-        return '', 204
-    except ValueError as ve:
-        return not_found_message(details=ve)
+        return delete_role(id)
     except Exception as e:
         return server_error_message(details=str(e))
     
@@ -91,9 +87,10 @@ def delete_role_route(id):
 @role_bp.route('/roles/<int:role_id>/update_permissions', methods=['POST'])
 def assing_role_permissions(role_id):
     
-        """ try:
-            req = input_role_permission_schema.load(request.json)
-        except Exception as e:
-            return bad_request_message(details=str(e)) """
+    schema = PermissionListSchema()
+    try:
+        params = schema.load(request.json)
+    except Exception as e:
+        return bad_request_message(details=str(e))
         
-        return create_role_permission(role_id,request.json)
+    return create_role_permission(role_id,request.json)

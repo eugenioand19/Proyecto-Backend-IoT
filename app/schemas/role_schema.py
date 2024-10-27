@@ -15,3 +15,6 @@ class RoleQuerySchema(Schema):
                                validate=validate.OneOf(["created_at", "name","description"]))
     sort_order = fields.Str(required=False, description="Sort order", 
                             validate=validate.OneOf(["ASC", "DESC"]))
+
+class PermissionListSchema(Schema):
+    permissions = fields.List(fields.Integer(strict=True), required=True)

@@ -14,6 +14,7 @@ sensor_bp = Blueprint('sensor', __name__, url_prefix='/api')
 sensor_schema = SensorSchema()
 @sensor_bp.route('/sensors', methods=['GET'])
 def get_sensors():
+
     try:
         schema = SensorQuerySchema()
         try:
@@ -37,15 +38,13 @@ def get_sensors():
 
         return sensors
     except Exception as e:
-         return server_error_message(details=str(e))
+        return server_error_message(details=str(e))
 
 @sensor_bp.route('/sensors/<int:id>', methods=['GET'])
 def get_sensor(id):
     try:
         sensor = get_sensor_by_id(id)
         return sensor
-    except ValueError as ve:
-        return not_found_message(details=str(ve))
     except Exception as e:
         return server_error_message(details=str(e))
 
@@ -73,17 +72,13 @@ def update_sensor_route(id):
         response = update_sensor(id, request.json)
         
         return response
-    except ValueError as e:
-        return not_found_message(details=e)
     except Exception as e:
         return server_error_message(details=str(e))
 
 @sensor_bp.route('/sensors/<int:id>', methods=['DELETE'])
 def delete_sensor_route(id):
     try:
-        delete_sensor(id)
-        return '', 204
-    except ValueError as ve:
-        return not_found_message(details=ve)
+        
+        return delete_sensor(id)
     except Exception as e:
         return server_error_message(details=str(e))

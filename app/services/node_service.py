@@ -1,13 +1,14 @@
 from sqlalchemy import asc, desc, or_
 from app.models.node import Node
+from app.models.sensor import Sensor
 from app.models.sensor_node import SensorNode
 from app.schemas.node_schema import NodeSchema
+from app.services.wetland_service import get_wetland_by_id
 from app.utils.error.error_handlers import ResourceNotFound
 from db import db
 from app.utils.success_responses import pagination_response,created_ok_message,ok_message
 from app.utils.error.error_responses import bad_request_message, not_found_message,server_error_message
 from marshmallow import ValidationError
-from app.services.wetland_service import get_wetland_by_id
 node_schema = NodeSchema()
 node_schema_many = NodeSchema(many=True)
 
@@ -29,56 +30,50 @@ def get_all_nodes(pagelink,statusList,typesList):
 
 
 def get_node_by_id(node_id):
-    try:
-        node = Node.query.get(node_id)
-        if not node:
-            raise ResourceNotFound("Nodo no encontrado")
-        return (node_schema.dump(node))
-    except ResourceNotFound as e:
-        return not_found_message(details=e,entity="Nodo")
+    print(node_id)
+    node = Node.query.get(node_id)
+    if not node:
+        raise ResourceNotFound("Nodo no encontrado")
+    return node_schema.dump(node)
     
 def create_node(data):
     try:
-         
-        if not  get_wetland_by_id(data.wetland_id):
-            raise Exception("Wetland not found")
+        if data.wetland_id:
+            if not  get_wetland_by_id(data.wetland_id):
+                raise ResourceNotFound("Humedal no encontrado")
         db.session.add(data)
         db.session.commit()
         return created_ok_message(message="El Nodo ha sido creado correctamente!")
-    except Exception as err:
+    except ResourceNotFound as err:
         db.session.rollback()
-        return server_error_message(details=str(err))
+        return not_found_message(entity='Humedal',details=str(err))
 
 def update_node(node_id, data):
     try:
-        if not  get_wetland_by_id(data.get('wetland_id')):
-            raise Exception("golasd")
+        if data.get("wetland_id"):
+            if not  get_wetland_by_id(data.get("wetland_id")):
+                raise ResourceNotFound("Humedal no encontrado")
+        
         node = Node.query.get(node_id)
         if not node:
-            raise ValueError("Node not found")
+            raise ResourceNotFound("Node not found")
         node = node_schema.load(data, instance=node, partial=True)
         db.session.commit()
         return ok_message()
-    except ValueError as err:
-        raise ValueError(err)
-    except Exception as e:
-        db.session.rollback()
-        raise Exception(str(e)) 
+    except ResourceNotFound as err:
+        return not_found_message(entity="Nodo o humedal", details=str(err))
+
 
 def delete_node(node_id):
     try:
         node = Node.query.get(node_id)
         if not node:
-            raise ValueError("Node not found")
+            raise ResourceNotFound("Nodo no encontrado")
         db.session.delete(node)
         db.session.commit()
-        return True
-    except ValueError as err:
-        db.session.rollback()
-        raise ValueError("Node not found")
-    except Exception as e:
-        db.session.rollback()
-        raise Exception(str(e))
+        return '',204
+    except ResourceNotFound as e:
+        return not_found_message(details=str(e),entity="Nodo")
 
 def apply_filters_and_pagination(query, text_search=None, sort_order=None, statusList=None,typesList=None):
     
@@ -118,10 +113,21 @@ def apply_filters_and_pagination(query, text_search=None, sort_order=None, statu
 def assing_sensors_service(node_id, data):
     try:
         node = Node.query.get(node_id)
+
+        if node is None:
+            raise ResourceNotFound("El nodo no ha sido encontrado")
         
         # Obtener los sensores del JSON enviado
         new_sensor_ids = data.get('sensors', [])
 
+        # Validar que todos los sensores existen
+        existing_sensors = Sensor.query.filter(Sensor.sensor_id.in_(new_sensor_ids)).all()
+        existing_sensor_ids = {sensor.sensor_id for sensor in existing_sensors}
+        missing_sensor_ids = set(new_sensor_ids) - existing_sensor_ids
+
+        if missing_sensor_ids:
+            raise ResourceNotFound(f"Los siguientes sensores no existen: {missing_sensor_ids}")
+        
         # Verificar los sensores ya existentes en el nodo
         existing_sensor_nodes = SensorNode.query.filter_by(node_id=node_id).all()
         existing_sensor_ids = [sensor_node.sensor_id for sensor_node in existing_sensor_nodes]
@@ -150,6 +156,9 @@ def assing_sensors_service(node_id, data):
         # Guardar los cambios
         db.session.commit()
         return created_ok_message(message="La asigancion se ha realizado correctamente!")
+    except ResourceNotFound as nf:
+        db.session.rollback()
+        return not_found_message(details=str(nf))
     except Exception as err:
         db.session.rollback()
         return server_error_message(details=str(err))

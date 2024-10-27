@@ -1,9 +1,10 @@
 from sqlalchemy import asc, desc, or_
 from app.models.sensor import Sensor
 from app.schemas.sensor_schema import SensorSchema
+from app.utils.error.error_handlers import ResourceNotFound
 from db import db
 from app.utils.success_responses import pagination_response,created_ok_message,ok_message
-from app.utils.error.error_responses import bad_request_message,server_error_message
+from app.utils.error.error_responses import bad_request_message, not_found_message,server_error_message
 from marshmallow import ValidationError
 from app.services.wetland_service import get_wetland_by_id
 sensor_schema = SensorSchema()
@@ -25,56 +26,44 @@ def get_all_sensors(pagelink,statusList,typesList):
         raise Exception(str(e))
 
 
-
 def get_sensor_by_id(sensor_id):
-    try:
-        sensor = Sensor.query.get(sensor_id)
-        if not sensor:
-            raise ValueError("Sensor not found")
-        return (sensor_schema.dump(sensor))
-    except ValueError as e:
-        raise ValueError("Sensor not found")
+    print(sensor_id)
+    sensor = Sensor.query.get(sensor_id)
+    if not sensor:
+        raise ResourceNotFound("Sensor no encontrado")
+    return sensor_schema.dump(sensor)
     
 def create_sensor(data):
     try:
-        
         db.session.add(data)
         db.session.commit()
         return created_ok_message(message="El Sensor ha sido creado correctamente!")
-    except Exception as err:
+    except ResourceNotFound as err:
         db.session.rollback()
-        return server_error_message(details=str(err))
+        return not_found_message(entity='Se',details=str(err))
 
 def update_sensor(sensor_id, data):
     try:
-        if not  get_wetland_by_id(data.get('wetland_id')):
-            raise Exception("golasd")
         sensor = Sensor.query.get(sensor_id)
         if not sensor:
-            raise ValueError("Sensor not found")
+            raise ResourceNotFound("Sensor not found")
         sensor = sensor_schema.load(data, instance=sensor, partial=True)
         db.session.commit()
         return ok_message()
-    except ValueError as err:
-        raise ValueError(err)
-    except Exception as e:
-        db.session.rollback()
-        raise Exception(str(e)) 
+    except ResourceNotFound as err:
+        return not_found_message(entity="Sensor", details=str(err))
+
 
 def delete_sensor(sensor_id):
     try:
         sensor = Sensor.query.get(sensor_id)
         if not sensor:
-            raise ValueError("Sensor not found")
+            raise ResourceNotFound("Sensor no encontrado")
         db.session.delete(sensor)
         db.session.commit()
-        return True
-    except ValueError as err:
-        db.session.rollback()
-        raise ValueError("Sensor not found")
-    except Exception as e:
-        db.session.rollback()
-        raise Exception(str(e))
+        return '',204
+    except ResourceNotFound as e:
+        return not_found_message(details=str(e),entity="Sensor")
 
 def apply_filters_and_pagination(query, text_search=None, sort_order=None, statusList=None,typesList=None):
     

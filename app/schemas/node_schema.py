@@ -34,3 +34,6 @@ class NodeQuerySchema(Schema):
         required=False,
         description="Comma-separated list of status values."
     )
+
+class SensorsListSchema(Schema):
+    sensors = fields.List(fields.Integer(strict=True), required=True)
