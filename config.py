@@ -17,7 +17,7 @@ class DevelopmentConfig(Config):
     DB_PORT = config('DB_PORT')
     DB_NAME = config('DB_NAME')
 
-    SQLALCHEMY_DATABASE_URI = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    SQLALCHEMY_DATABASE_URI = config('DATA_BASE_URL_DEV',f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}") 
 
 class ProductionConfig(Config):
     DEBUG = True
