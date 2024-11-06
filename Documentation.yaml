@@ -3,7 +3,9 @@ info:
   title: Monitoreo de Usuarios y Humedales API
   version: 1.0.0
   description: API para la gestión de usuarios y monitoreo de humedales
-
+servers:
+  - url: "https://proyecto-backend-iot.vercel.app"
+    description: "Servidor de prueba"
 tags:
   - name: Users
     description: Operaciones relacionadas con usuarios
@@ -44,7 +46,8 @@ paths:
           in: query
           schema:
             type: string
-          description: Texto de búsqueda
+          description: Texto de búsqueda (name, last_name, email)
+
         - name: sort_property
           in: query
           schema:
@@ -166,7 +169,7 @@ paths:
           in: query
           schema:
             type: string
-          description: Texto de búsqueda
+          description: Texto de búsqueda (name, location)
         - name: sort_property
           in: query
           schema:
@@ -268,6 +271,45 @@ paths:
       responses:
         '204':
           description: Humedal eliminado
+    
+      
+  /api/wetlands-overview:
+    get:
+      tags:
+        - Wetlands
+      summary: Obtener informacion de los sensores de cada uno de los humedales
+      responses:
+        '200':
+          description: Lista de nodos obtenida
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ResponseData'
+  
+  /api/wetlands-overview/{wetland_id}:
+    get:
+      tags:
+        - Wetlands
+      summary: Obtener informacion de los sensores de cada uno de los humedales con sus nodos 
+      parameters:
+        - name: wetland_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            description: ID del humedal
+      responses:
+        '200':
+          description: Lista de nodos obtenida
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ResponseData_Wt'
+
 
   /api/nodes:
     get:
@@ -291,7 +333,7 @@ paths:
           in: query
           schema:
             type: string
-          description: Consulta de búsqueda de texto
+          description: Consulta de búsqueda de texto (str_MAC,location,name)
         - name: sort_property
           in: query
           schema:
@@ -465,7 +507,7 @@ paths:
           in: query
           schema:
             type: string
-          description: Consulta de búsqueda de texto
+          description: Consulta de búsqueda de texto (name)
         - name: sort_property
           in: query
           schema:
@@ -594,7 +636,7 @@ paths:
           name: text_search
           schema:
             type: string
-          description: Texto de búsqueda
+          description: Texto de búsqueda (name, decription)
         - in: query
           name: sort_property
           schema:
@@ -725,7 +767,7 @@ paths:
           name: text_search
           schema:
             type: string
-          description: Texto de búsqueda
+          description: Texto de búsqueda(name,description)
         - in: query
           name: sort_property
           schema:
@@ -823,7 +865,7 @@ paths:
           name: text_search
           schema:
             type: string
-          description: Texto de búsqueda
+          description: Texto de búsqueda (name,description)
       responses:
         '200':
           description: Permisos filtrados obtenidos exitosamente
@@ -850,8 +892,7 @@ components:
           type: string
           format: password
         role:
-          type: string
-          enum: [Admin, User, Moderator]
+          type: integer
       required:
         - name
         - last_name
@@ -1052,7 +1093,7 @@ components:
           minimum: 1
         text_search:
           type: string
-          description: Texto de búsqueda
+          description: Texto de búsqueda (name,description)
         sort_property:
           type: string
           description: Propiedad para ordenar
@@ -1091,3 +1132,123 @@ components:
         text_search:
           type: string
           description: Texto de búsqueda
+    Sensor_:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Oxigeno Disuelto"
+        unity:
+          type: string
+          example: "mg/L"
+        value:
+          type: number
+          format: float
+          example: 5001967706629558.0
+    Node_:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "DDS"
+        node_id:
+          type: integer
+          example: 12
+        sensors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Sensor_'
+
+    SensorData:
+      type: object
+      properties:
+        last_updated:
+          type: string
+          format: date-time
+          example: "Thu, 31 Oct 2024 16:29:08 GMT"
+        location:
+          type: string
+          example: "WS"
+        name:
+          type: string
+          example: "hard drive"
+        sensors:
+          type: object
+          properties:
+            OD:
+              $ref: '#/components/schemas/Sensor'
+            TEMP:
+              $ref: '#/components/schemas/Sensor'
+            TURB:
+              $ref: '#/components/schemas/Sensor'
+
+        status:
+          type: string
+          example: "NORMAL"
+        wetland_id:
+          type: integer
+          example: 4
+
+    ResponseData:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SensorData'
+        errors:
+          type: object
+          properties:
+            code:
+              type: integer
+              example: 200
+            message:
+              type: string
+              example: "Sucess!"
+        message:
+          type: string
+          example: "Operacion Realizada Correctamente"
+
+    SensorData_Wt:
+      type: object
+      properties:
+        last_updated:
+          type: string
+          format: date-time
+          example: "Thu, 31 Oct 2024 16:44:55 GMT"
+        location:
+          type: string
+          example: "RO"
+        name:
+          type: string
+          example: "sensor"
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Node_'
+        status:
+          type: string
+          example: "NORMAL"
+        wetland_id:
+          type: integer
+          example: 5
+
+    ResponseData_Wt:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SensorData_Wt'
+        errors:
+          type: object
+          properties:
+            code:
+              type: integer
+              example: 200
+            message:
+              type: string
+              example: "Sucess!"
+        message:
+          type: string
+          example: "Operacion Realizada Correctamente"

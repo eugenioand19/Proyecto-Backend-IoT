@@ -4,7 +4,8 @@ from app.services.sensor_service import (
     get_sensor_by_id,
     create_sensor,
     update_sensor,
-    delete_sensor
+    delete_sensor,
+    get_all_type_sensors
 )
 from app.schemas.sensor_schema import SensorQuerySchema,SensorSchema
 from app.utils.error.error_responses import *
@@ -80,5 +81,13 @@ def delete_sensor_route(id):
     try:
         
         return delete_sensor(id)
+    except Exception as e:
+        return server_error_message(details=str(e))
+
+@sensor_bp.route('/sensors/type_sensors', methods=['GET'])
+def get_all_typesensors():
+
+    try:
+        return get_all_type_sensors()
     except Exception as e:
         return server_error_message(details=str(e))

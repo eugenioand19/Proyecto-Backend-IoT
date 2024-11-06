@@ -96,7 +96,8 @@ def apply_filters_and_pagination(query, text_search=None, sort_order=None, statu
        
         search_filter = or_(
             Node.str_MAC.ilike(f'%{text_search}%'),
-            Node.location.ilike(f'%{text_search}%')
+            Node.location.ilike(f'%{text_search}%'),
+             Node.name.ilike(f'%{text_search}%')
         )
         query = query.filter(search_filter)
 

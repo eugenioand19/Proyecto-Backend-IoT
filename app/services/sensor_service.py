@@ -1,6 +1,7 @@
 from sqlalchemy import asc, desc, or_
 from app.models.sensor import Sensor
-from app.schemas.sensor_schema import SensorSchema
+from app.models.type_sensor import TypeSensor
+from app.schemas.sensor_schema import SensorSchema, TypeSensorSchema
 from app.utils.error.error_handlers import ResourceNotFound
 from db import db
 from app.utils.success_responses import pagination_response,created_ok_message,ok_message
@@ -9,6 +10,7 @@ from marshmallow import ValidationError
 from app.services.wetland_service import get_wetland_by_id
 sensor_schema = SensorSchema()
 sensor_schema_many = SensorSchema(many=True)
+type_sensor_schema = TypeSensorSchema(many=True)
 
 def get_all_sensors(pagelink,statusList,typesList):
     try:
@@ -27,7 +29,6 @@ def get_all_sensors(pagelink,statusList,typesList):
 
 
 def get_sensor_by_id(sensor_id):
-    print(sensor_id)
     sensor = Sensor.query.get(sensor_id)
     if not sensor:
         raise ResourceNotFound("Sensor no encontrado")
@@ -35,6 +36,13 @@ def get_sensor_by_id(sensor_id):
     
 def create_sensor(data):
     try:
+
+        # Obtener los códigos válidos de la base de datos
+        valid_codes = {type_sensor.code for type_sensor in TypeSensor.query.all()}
+    
+        # Validar el campo 'type_sensor'
+        if data.type_sensor not in valid_codes:
+            return not_found_message(entity='Tipos de Sensores')
         db.session.add(data)
         db.session.commit()
         return created_ok_message(message="El Sensor ha sido creado correctamente!")
@@ -47,6 +55,13 @@ def update_sensor(sensor_id, data):
         sensor = Sensor.query.get(sensor_id)
         if not sensor:
             raise ResourceNotFound("Sensor not found")
+        
+        # Obtener los códigos válidos de la base de datos
+        valid_codes = {type_sensor.code for type_sensor in TypeSensor.query.all()}
+    
+        # Validar el campo 'type_sensor'
+        if data.get('type_sensor') not in valid_codes:
+            return not_found_message(entity='Tipos de Sensores')
         sensor = sensor_schema.load(data, instance=sensor, partial=True)
         db.session.commit()
         return ok_message()
@@ -98,4 +113,15 @@ def apply_filters_and_pagination(query, text_search=None, sort_order=None, statu
 
     return query
 
+def get_all_type_sensors():
+    try:
+        
+        data = TypeSensor.query.all()
+        print(data)
+        data = type_sensor_schema.dump(data)
+        print(data)
+        return ok_message(data=data)
+    except Exception as e:
+        print(e)
+        raise Exception(str(e))
 

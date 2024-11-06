@@ -3,6 +3,8 @@ from app.services.wetland_service import (
     get_all_wetlands,
     get_wetland_by_id,
     create_wetland,
+    get_wetlands_overview,
+    get_wetlands_overview_details,
     update_wetland,
     delete_wetland
 )
@@ -84,3 +86,22 @@ def delete_wetland_route(id):
 
     except Exception as e:
         return server_error_message(details=str(e))
+
+@wetland_bp.route('/wetlands-overview', methods=['GET'])
+def get_wetlands_dashboard():
+
+    try:
+        
+        return get_wetlands_overview()
+    except Exception as err:
+        return server_error_message(details=str(err))
+
+
+@wetland_bp.route('/wetlands-overview/<int:id_wetland>', methods=['GET'])
+def get_wetlands_dashboard_details(id_wetland):
+
+    try:
+        
+        return get_wetlands_overview_details(id_wetland)
+    except Exception as err:
+        return server_error_message(details=str(err))

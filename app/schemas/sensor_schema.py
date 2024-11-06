@@ -1,13 +1,14 @@
 from flask_marshmallow.sqla import SQLAlchemyAutoSchema
 from app.models.sensor import Sensor
 from marshmallow import Schema, ValidationError, fields, validate
+from app.models.type_sensor import TypeSensor
 from app.utils.delimited_list import DelimitedListField
 class SensorSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Sensor
         load_instance = True
     status = fields.Str(required=True, validate=validate.OneOf(["ACTIVE","INACTIVE"]))
-    type_sensor = fields.Str(required=True, validate=validate.OneOf(["PH","OD","TEMP","TURB","CAUD_EN","CAUD_SAL"]))
+    type_sensor = fields.Str(required=True)
 
 class SensorQuerySchema(Schema):
     page_size = fields.Int(required=True, description="Page size", validate=validate.Range(min=1))
@@ -34,3 +35,8 @@ class SensorQuerySchema(Schema):
         required=False,
         description="Comma-separated list of status values."
     )
+
+class TypeSensorSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = TypeSensor
+        load_instance = True
