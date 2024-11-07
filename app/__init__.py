@@ -6,10 +6,11 @@ from app.utils.error.error_handlers import register_error_handlers, setup_jwt_ha
 from app.routes.central_routes import register_blueprints
 from flask import Flask
 from db import db
-from decouple import config
 from flask_marshmallow import Marshmallow
+from app.routes.user_route import user_bp
 from flask_jwt_extended import JWTManager
 from flasgger import Swagger
+from decouple import config
 from flask_cors import CORS
 
 env = config('FLASK_ENV', 'development')
