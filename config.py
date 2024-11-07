@@ -21,7 +21,7 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = config('DATA_BASE_URL_PROD','postgres://default:u1vIgKtYRp6i@ep-cold-lab-a4al074v-pooler.us-east-1.aws.neon.tech:5432/verceldb?sslmode=require')
+    SQLALCHEMY_DATABASE_URI = config('DATA_BASE_URL_PROD','')
 
 config = {
     'development': DevelopmentConfig,
