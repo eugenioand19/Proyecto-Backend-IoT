@@ -18,3 +18,6 @@ class RoleQuerySchema(Schema):
 
 class PermissionListSchema(Schema):
     permissions = fields.List(fields.Integer(strict=True), required=True)
+
+class RoleQuerySelectSchema(Schema):
+    text_search = fields.Str(required=False, description="Search query")

@@ -27,6 +27,26 @@ def get_all_nodes(pagelink,statusList,typesList):
     except Exception as e:
         raise Exception(str(e))
 
+def get_all_node_select(text_search):
+    try:
+        
+        query = Node.query
+        if text_search:
+       
+            search_filter = or_(
+                Node.name.ilike(f'%{text_search}%'),
+                Node.location.ilike(f'%{text_search}%')
+            )
+            query = query.filter(search_filter)
+        
+        query = query.with_entities(Node.node_id, Node.name).all()
+
+        data = node_schema_many.dump(query)
+        
+        return ok_message(data=data)
+    except Exception as e:
+        raise Exception(str(e))
+
 
 
 def get_node_by_id(node_id):

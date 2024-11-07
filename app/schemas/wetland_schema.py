@@ -28,3 +28,6 @@ class WetlandQuerySchema(Schema):
         required=False,
         description="Comma-separated list of status values."
     )
+
+class WetlandQuerySelectSchema(Schema):
+    text_search = fields.Str(required=False, description="Search query")

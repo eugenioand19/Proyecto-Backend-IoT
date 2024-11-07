@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from app.services.role_service import (
+    get_all_role_select,
     get_all_roles,
     get_role_by_id,
     create_role,
@@ -7,7 +8,7 @@ from app.services.role_service import (
     delete_role,
     create_role_permission
 )
-from app.schemas.role_schema import RoleQuerySchema,RoleSchema,PermissionListSchema
+from app.schemas.role_schema import RoleQuerySchema, RoleQuerySelectSchema,RoleSchema,PermissionListSchema
 from app.utils.error.error_handlers import ResourceNotFound
 from app.utils.error.error_responses import *
 from app.utils.pagination.page_link import create_page_link
@@ -35,6 +36,23 @@ def get_roles():
         page_link = create_page_link(page_size,page,text_search,sort_property,sort_order)
 
         roles = get_all_roles(page_link)
+        return roles
+    except Exception as e:
+        return server_error_message(details=str(e))
+
+@role_bp.route('/role-select', methods=['GET'])
+def get_role_select():
+    try:
+        schema = RoleQuerySelectSchema()
+        try:
+            params = schema.load(request.args)
+        except Exception as e:
+            return bad_request_message(details=str(e))
+        
+        #get se params
+        text_search = params.get('text_search', '')
+        
+        roles = get_all_role_select(text_search)
         return roles
     except Exception as e:
         return server_error_message(details=str(e))

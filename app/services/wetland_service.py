@@ -35,6 +35,26 @@ def get_all_wetlands(pagelink,statusList):
     except Exception as e:
         raise Exception(str(e))
 
+def get_all_wetland_select(text_search):
+    try:
+        
+        query = Wetland.query
+        if text_search:
+       
+            search_filter = or_(
+                Wetland.name.ilike(f'%{text_search}%'),
+                Wetland.location.ilike(f'%{text_search}%')
+            )
+            query = query.filter(search_filter)
+        
+        query = query.with_entities(Wetland.wetland_id, Wetland.name).all()
+
+        data = wetland_schema_many.dump(query)
+        
+        return ok_message(data=data)
+    except Exception as e:
+        raise Exception(str(e))
+
 def get_wetland_by_id(wetland_id):
     wetland = Wetland.query.get(wetland_id)
     if not wetland:

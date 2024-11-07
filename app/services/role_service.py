@@ -49,6 +49,26 @@ def create_role(data):
         db.session.rollback()
         return server_error_message(details=str(err))
 
+def get_all_role_select(text_search):
+    try:
+        
+        query = Role.query
+        if text_search:
+       
+            search_filter = or_(
+                Role.name.ilike(f'%{text_search}%'),
+                Role.description.ilike(f'%{text_search}%')
+            )
+            query = query.filter(search_filter)
+        
+        query = query.with_entities(Role.role_id, Role.name,Role.description).all()
+
+        data = role_schema_many.dump(query)
+        
+        return ok_message(data=data)
+    except Exception as e:
+        raise Exception(str(e))
+
 def update_role(role_id, data):
     try:
 

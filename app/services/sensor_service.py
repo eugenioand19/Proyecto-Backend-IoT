@@ -7,7 +7,6 @@ from db import db
 from app.utils.success_responses import pagination_response,created_ok_message,ok_message
 from app.utils.error.error_responses import bad_request_message, not_found_message,server_error_message
 from marshmallow import ValidationError
-from app.services.wetland_service import get_wetland_by_id
 sensor_schema = SensorSchema()
 sensor_schema_many = SensorSchema(many=True)
 type_sensor_schema = TypeSensorSchema(many=True)
@@ -27,6 +26,24 @@ def get_all_sensors(pagelink,statusList,typesList):
     except Exception as e:
         raise Exception(str(e))
 
+def get_all_sensor_select(text_search):
+    try:
+        
+        query = Sensor.query
+        if text_search:
+       
+            search_filter = or_(
+                Sensor.name.ilike(f'%{text_search}%')
+            )
+            query = query.filter(search_filter)
+        
+        query = query.with_entities(Sensor.sensor_id, Sensor.name).all()
+
+        data = sensor_schema_many.dump(query)
+        
+        return ok_message(data=data)
+    except Exception as e:
+        raise Exception(str(e))
 
 def get_sensor_by_id(sensor_id):
     sensor = Sensor.query.get(sensor_id)
@@ -117,9 +134,7 @@ def get_all_type_sensors():
     try:
         
         data = TypeSensor.query.all()
-        print(data)
         data = type_sensor_schema.dump(data)
-        print(data)
         return ok_message(data=data)
     except Exception as e:
         print(e)

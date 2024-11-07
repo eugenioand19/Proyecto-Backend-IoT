@@ -37,3 +37,6 @@ class NodeQuerySchema(Schema):
 
 class SensorsListSchema(Schema):
     sensors = fields.List(fields.Integer(strict=True), required=True)
+
+class NodeQuerySelectSchema(Schema):
+    text_search = fields.Str(required=False, description="Search query")

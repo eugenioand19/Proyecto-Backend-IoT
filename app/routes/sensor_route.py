@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from app.services.sensor_service import (
+    get_all_sensor_select,
     get_all_sensors,
     get_sensor_by_id,
     create_sensor,
@@ -7,7 +8,7 @@ from app.services.sensor_service import (
     delete_sensor,
     get_all_type_sensors
 )
-from app.schemas.sensor_schema import SensorQuerySchema,SensorSchema
+from app.schemas.sensor_schema import SensorQuerySchema, SensorQuerySelectSchema,SensorSchema
 from app.utils.error.error_responses import *
 from app.utils.pagination.page_link import create_page_link
 sensor_bp = Blueprint('sensor', __name__, url_prefix='/api')
@@ -89,5 +90,22 @@ def get_all_typesensors():
 
     try:
         return get_all_type_sensors()
+    except Exception as e:
+        return server_error_message(details=str(e))
+
+@sensor_bp.route('/sensor-select', methods=['GET'])
+def get_sensor_select():
+    try:
+        schema = SensorQuerySelectSchema()
+        try:
+            params = schema.load(request.args)
+        except Exception as e:
+            return bad_request_message(details=str(e))
+        
+        #get se params
+        text_search = params.get('text_search', '')
+        
+        sensors = get_all_sensor_select(text_search)
+        return sensors
     except Exception as e:
         return server_error_message(details=str(e))

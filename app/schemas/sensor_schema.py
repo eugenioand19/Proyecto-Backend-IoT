@@ -40,3 +40,6 @@ class TypeSensorSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = TypeSensor
         load_instance = True
+
+class SensorQuerySelectSchema(Schema):
+    text_search = fields.Str(required=False, description="Search query")

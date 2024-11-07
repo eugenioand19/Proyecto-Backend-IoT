@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from app.services.node_service import (
+    get_all_node_select,
     get_all_nodes,
     get_node_by_id,
     create_node,
@@ -8,7 +9,7 @@ from app.services.node_service import (
     assing_sensors_service
 )
 from marshmallow.exceptions import ValidationError
-from app.schemas.node_schema import NodeQuerySchema,NodeSchema, SensorsListSchema
+from app.schemas.node_schema import NodeQuerySchema, NodeQuerySelectSchema,NodeSchema, SensorsListSchema
 from app.utils.error.error_handlers import ResourceNotFound, ValidationErrorExc
 from app.utils.error.error_responses import *
 from app.utils.pagination.page_link import create_page_link
@@ -38,6 +39,23 @@ def get_nodes():
         page_link = create_page_link(page_size,page,text_search,sort_property,sort_order)
 
         nodes = get_all_nodes(page_link,statusList=statusList,typesList=typesList)
+        return nodes
+    except Exception as e:
+        return server_error_message(details=str(e))
+
+@node_bp.route('/node-select', methods=['GET'])
+def get_node_select():
+    try:
+        schema = NodeQuerySelectSchema()
+        try:
+            params = schema.load(request.args)
+        except Exception as e:
+            return bad_request_message(details=str(e))
+        
+        #get se params
+        text_search = params.get('text_search', '')
+        
+        nodes = get_all_node_select(text_search)
         return nodes
     except Exception as e:
         return server_error_message(details=str(e))

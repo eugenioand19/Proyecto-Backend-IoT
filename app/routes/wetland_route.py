@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from app.services.wetland_service import (
+    get_all_wetland_select,
     get_all_wetlands,
     get_wetland_by_id,
     create_wetland,
@@ -8,7 +9,7 @@ from app.services.wetland_service import (
     update_wetland,
     delete_wetland
 )
-from app.schemas.wetland_schema import WetlandQuerySchema,WetlandSchema
+from app.schemas.wetland_schema import WetlandQuerySchema, WetlandQuerySelectSchema,WetlandSchema
 from app.utils.error.error_handlers import ResourceNotFound
 from app.utils.error.error_responses import *
 from app.utils.pagination.page_link import create_page_link
@@ -41,6 +42,23 @@ def get_wetlands():
     except Exception as e:
          return server_error_message(details=str(e))
 
+@wetland_bp.route('/wetland-select', methods=['GET'])
+def get_wetland_select():
+    try:
+        schema = WetlandQuerySelectSchema()
+        try:
+            params = schema.load(request.args)
+        except Exception as e:
+            return bad_request_message(details=str(e))
+        
+        #get se params
+        text_search = params.get('text_search', '')
+        
+        wetlands = get_all_wetland_select(text_search)
+        return wetlands
+    except Exception as e:
+        return server_error_message(details=str(e))
+    
 @wetland_bp.route('/wetlands/<int:id>', methods=['GET'])
 def get_wetland(id):
     try:
