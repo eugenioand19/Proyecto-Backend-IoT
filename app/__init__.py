@@ -6,12 +6,13 @@ from app.utils.error.error_handlers import register_error_handlers, setup_jwt_ha
 from app.routes.central_routes import register_blueprints
 from flask import Flask
 from db import db
+from decouple import config
 from flask_marshmallow import Marshmallow
-from app.routes.user_route import user_bp
 from flask_jwt_extended import JWTManager
 from flasgger import Swagger
+from flask_cors import CORS
 
-
+env = config('FLASK_ENV', 'development')
 
 app = Flask(__name__)
 
@@ -22,6 +23,12 @@ def init_app(config):
     db.init_app(app)
     ma = Marshmallow(app)
     jwt = JWTManager(app)
+
+    
+    if env == 'development':
+        CORS(app, resources={r"/*": {"origins": "https://proyecto-front-end-iot.vercel.app/"}})
+    elif env == 'production':
+        CORS(app, resources={r"/*": {"origins": "https://wetlandmanager.vercel.app/"}})
 
     setup_jwt_handlers(jwt)
 
