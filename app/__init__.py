@@ -18,20 +18,11 @@ env = config('FLASK_ENV', 'development')
 app = Flask(__name__)
 
 def init_app(config):
-   
     # Configuration
     app.config.from_object(config)
     db.init_app(app)
     ma = Marshmallow(app)
     jwt = JWTManager(app)
-
-    
-    if env == 'development':
-        CORS(app, resources={r"/*": {"origins": "https://proyecto-front-end-iot.vercel.app/"}})
-    elif env == 'production':
-        CORS(app, resources={r"/*": {"origins": "https://wetlandmanager.vercel.app/"}})
-
-    setup_jwt_handlers(jwt)
 
     # Synchronize changes between models and tables
     """ with app.app_context():
@@ -43,6 +34,9 @@ def init_app(config):
     # Registrar los manejadores de errores
     register_error_handlers(app)  # Aquí se usan los manejadores de errores
 
+    CORS(app, resources={r"/*": {"origins": app.config['CORS_ORIGIN']}})
+    
+    setup_jwt_handlers(jwt)
     
     """ if __name__ == "__main__":
         app.run(debug=True) """

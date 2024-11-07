@@ -18,10 +18,12 @@ class DevelopmentConfig(Config):
     DB_NAME = config('DB_NAME')
 
     SQLALCHEMY_DATABASE_URI = config('DATA_BASE_URL_DEV',f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}") 
+    CORS_ORIGIN = config('CORS_ORIGIN', default='http://localhost:3000').split(',')
 
 class ProductionConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = config('DATA_BASE_URL_PROD','')
+    CORS_ORIGIN = config('CORS_ORIGIN').split(',')
 
 config = {
     'development': DevelopmentConfig,
