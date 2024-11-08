@@ -28,6 +28,7 @@ def get_users_service(pagelink):
         
         return pagination_response(users_paginated.total,users_paginated.pages,users_paginated.page,users_paginated.per_page,data=data)
     except Exception as e:
+        print(e)
         raise Exception("Error al obtener los usuarios") from e
 
 def get_user_by_id(user_id):
@@ -147,7 +148,7 @@ def apply_filters_and_pagination(query, text_search=None, sort_order=None):
     if text_search:
        
         search_filter = or_(
-            User.name.ilike(f'%{text_search}%'),
+            User.first_name.ilike(f'%{text_search}%'),
             User.last_name.ilike(f'%{text_search}%'),
             User.email.ilike(f'%{text_search}%')
         )
