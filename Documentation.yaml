@@ -17,7 +17,7 @@ tags:
     description: Operaciones relacionadas con los sensores en el sistema de monitoreo
   - name: Roles
     description: Operaciones relacionadas con los Roles del sistema
-  - name: Permission
+  - name: Permissions
     description: Operaciones relacionadas con los Permisos del sistema
 
 
@@ -61,14 +61,31 @@ paths:
             enum: [ASC, DESC]
           description: Orden de clasificación
       responses:
-        '200':
-          description: Lista de usuarios obtenida
+        200:
+          description: Successful response
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UserSchemaView'
+                $ref: '#/components/schemas/Response'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              
     post:
       tags:
         - Users
@@ -85,7 +102,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserSchemaView'
+                $ref: '#/components/schemas/ResponseWithMessage'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/users/{user_id}:
     get:
@@ -105,7 +134,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserSchemaView'
+                $ref: '#/components/schemas/ResponseWithUserObject'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     put:
       tags:
         - Users
@@ -122,14 +163,32 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserSchema'
+              $ref: '#/components/schemas/UserSchema_U'
       responses:
         '200':
           description: Usuario actualizado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserSchemaView'
+                $ref: '#/components/schemas/ResponseWithMessage'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     delete:
       tags:
         - Users
@@ -195,7 +254,25 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/WetlandSchema'
+                  $ref: '#/components/schemas/ResponseWithWetlandData'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     post:
       tags:
         - Wetlands
@@ -205,14 +282,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/WetlandSchema'
+              $ref: '#/components/schemas/WetlandPost'
       responses:
         '201':
           description: Humedal creado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WetlandSchema'
+                $ref: '#/components/schemas/ResponseWithMessage'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/wetlands/{wetland_id}:
     get:
@@ -232,7 +321,25 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WetlandSchema'
+                $ref: '#/components/schemas/ResponseWithWetlandObject'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     put:
       tags:
         - Wetlands
@@ -249,14 +356,32 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/WetlandSchema'
+              $ref: '#/components/schemas/WetlandPost'
       responses:
         '200':
           description: Humedal actualizado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WetlandSchema'
+                $ref: '#/components/schemas/ResponseWithMessage'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     delete:
       tags:
         - Wetlands
@@ -287,6 +412,24 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ResponseData'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   
   /api/wetlands-overview/{wetland_id}:
     get:
@@ -309,6 +452,79 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ResponseData_Wt'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /wetland-select:
+    get:
+      tags:
+        - Wetlands
+      summary: Obtener lista Humedales
+      description: Devuelve una lista de humedales. Puede realizar una búsqueda de texto.
+      parameters:
+        - name: text_search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Texto de búsqueda para filtrar humedales por nombre o descripcion.
+      responses:
+        '200':
+          description: Éxito
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Nombre del humedal
+                        wetland_id:
+                          type: integer
+                          description: ID del humedal
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+                  message:
+                    type: string
+                    description: Mensaje de operación realizada
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 
   /api/nodes:
@@ -364,7 +580,25 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Node'
+                  $ref: '#/components/schemas/ResponseWithNodeData'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     post:
       tags:
         - Nodes
@@ -374,14 +608,32 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Node'
+              $ref: '#/components/schemas/NodePost'
       responses:
         '201':
           description: Nodo creado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Node'
+                $ref: '#/components/schemas/ResponseWithMessage'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/nodes/{node_id}:
     get:
@@ -401,7 +653,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Node'
+                $ref: '#/components/schemas/ResponseWithNodeObject'
     put:
       tags:
         - Nodes
@@ -418,14 +670,32 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Node'
+              $ref: '#/components/schemas/NodePost'
       responses:
         '200':
           description: Nodo actualizado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Node'
+                $ref: '#/components/schemas/ResponseWithMessage'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     delete:
       tags:
         - Nodes
@@ -460,28 +730,133 @@ paths:
               $ref: '#/components/schemas/SensorsListSchema'
       responses:
         '200':
-          description: Sensores asignados exitosamente
+          description: Actualizan correcta
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Sensores asignados exitosamente"
+                $ref: '#/components/schemas/ResponseWithMessage'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '400':
-          description: Error en los datos de la solicitud
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /node-select:
+    get:
+      tags:
+        - Nodes
+      summary: Obtener nodos
+      description: Devuelve una lista de nodos. Puede filtrar por `wetland_id` o realizar una búsqueda de texto.
+      parameters:
+        - name: text_search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Texto de búsqueda para filtrar nodos por nombre o ubicación.
+      responses:
+        '200':
+          description: Éxito
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Nombre del nodo
+                        node_id:
+                          type: integer
+                          description: ID del nodo
+                  errors:
+                    $ref: '#/components/schemas/Errors'
                   message:
                     type: string
-                    example: "Error en los datos de la solicitud"
-                  details:
+                    description: Mensaje de operación realizada
+        '404':
+          description: No encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /node-select/{wetland_id}:
+    get:
+      tags:
+        - Nodes
+      summary: Obtener nodos por ID de humedal
+      description: Devuelve una lista de nodos filtrada por `wetland_id`.
+      parameters:
+        - name: wetland_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            description: ID del humedal.
+        - name: text_search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Texto de búsqueda para filtrar nodos por nombre o ubicación.
+      responses:
+        '200':
+          description: Éxito
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Nombre del nodo
+                        node_id:
+                          type: integer
+                          description: ID del nodo
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+                  message:
                     type: string
-                    example: "Descripción detallada del error"
+                    description: Mensaje de operación realizada
+        '404':
+          description: No encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/sensors:
     get:
@@ -538,7 +913,25 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Sensor'
+                  $ref: '#/components/schemas/ResponseWithSensorList'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     post:
       tags:
         - Sensors
@@ -548,14 +941,32 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SensorSchema'
+              $ref: '#/components/schemas/SensorPost'
       responses:
         '201':
           description: Sensor creado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Sensor'
+                $ref: '#/components/schemas/ResponseWithMessage'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/sensors/{sensor_id}:
     get:
@@ -575,7 +986,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Sensor'
+                $ref: '#/components/schemas/ResponseWithSensorObject'
     put:
       tags:
         - Sensors
@@ -592,14 +1003,32 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SensorSchema'
+              $ref: '#/components/schemas/SensorPost'
       responses:
         '200':
           description: Sensor actualizado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Sensor'
+                $ref: '#/components/schemas/ResponseWithMessage'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     delete:
       tags:
         - Sensors
@@ -614,6 +1043,122 @@ paths:
       responses:
         '204':
           description: Sensor eliminado
+  /sensor-select:
+    get:
+      tags:
+        - Sensors
+      summary: Obtener sensores
+      description: Devuelve una lista de sensores. Puede filtrar por `wetland_id` o realizar una búsqueda de texto.
+      parameters:
+        - name: text_search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Texto de búsqueda para filtrar sensores por nombre o ubicación.
+      responses:
+        '200':
+          description: Éxito
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Nombre del sensor
+                        sensor_id:
+                          type: integer
+                          description: ID del sensor
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+                  message:
+                    type: string
+                    description: Mensaje de operación realizada
+        '404':
+          description: No encontrado (Error de recurso no encontrado)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                    description: Array vacío cuando no se encuentran datos.
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+                  message:
+                    type: string
+                    description: Mensaje indicando que no hay datos disponibles
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /sensor-select/{node_id}:
+    get:
+      tags:
+        - Sensors
+      summary: Obtener sensores por ID de Nodo
+      description: Devuelve una lista de sensores filtrada por `node_id`.
+      parameters:
+        - name: node_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            description: ID del Nodo.
+        - name: text_search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Texto de búsqueda para filtrar sensores por nombre o ubicación.
+      responses:
+        '200':
+          description: Éxito
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Nombre del sensor
+                        sensor_id:
+                          type: integer
+                          description: ID del sensor
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+                  message:
+                    type: string
+                    description: Mensaje de operación realizada
+        '404':
+          description: No encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/roles:
     get:
       tags:
@@ -657,7 +1202,25 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Role'
+                  $ref: '#/components/schemas/ResponseWithRoleData'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     post:
       tags:
         - Roles
@@ -666,10 +1229,27 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Role'
+              $ref: '#/components/schemas/RolePost'
       responses:
         '201':
           description: Rol creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseWithMessage'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 
   /api/roles/{id}:
     get:
@@ -689,7 +1269,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Role'
+                $ref: '#/components/schemas/ResponseWithRoleObject'
     put:
       tags:
         - Roles
@@ -705,10 +1285,32 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Role'
+              $ref: '#/components/schemas/RolePost'
       responses:
         '200':
           description: Rol actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseWithMessage'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     delete:
       tags:
         - Roles
@@ -744,6 +1346,89 @@ paths:
       responses:
         '200':
           description: Permisos asignados exitosamente al rol
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseWithMessage'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /role-select:
+    get:
+      tags:
+        - Roles
+      summary: Obtener roles
+      description: Devuelve una lista de roles disponibles.
+      parameters:
+        - name: text_search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Texto de búsqueda para filtrar Roles por nombre
+
+      responses:
+        '200':
+          description: Éxito
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Nombre del rol
+                        role_id:
+                          type: integer
+                          description: ID del rol
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+                  message:
+                    type: string
+                    description: Mensaje de operación realizada
+        '404':
+          description: No encontrado (Error de recurso no encontrado)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                    description: Array vacío cuando no se encuentran datos.
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+                  message:
+                    type: string
+                    description: Mensaje indicando que no hay datos disponibles
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/permissions:
     get:
@@ -788,7 +1473,25 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Permission'
+                  $ref: '#/components/schemas/ResponseWithpermissionList'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     post:
       tags:
         - Permissions
@@ -797,10 +1500,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Permission'
+              $ref: '#/components/schemas/PermissionPost'
       responses:
         '201':
-          description: Permiso creado exitosamente
+          description: Permiso creado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseWithMessage'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/permissions/{id}:
     get:
@@ -820,7 +1539,25 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Permission'
+                $ref: '#/components/schemas/ResponseWithPermissionObject'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     put:
       tags:
         - Permissions
@@ -836,10 +1573,32 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Permission'
+              $ref: '#/components/schemas/PermissionPost'
       responses:
         '200':
-          description: Permiso actualizado exitosamente
+          description: Permisos asignados exitosamente al rol
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseWithMessage'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     delete:
       tags:
         - Permissions
@@ -855,86 +1614,286 @@ paths:
         '204':
           description: Permiso eliminado exitosamente
 
-  /api/permissions-select:
+  /permissions-select:
     get:
       tags:
         - Permissions
-      summary: Obtener permisos con búsqueda
+      summary: Obtener Permisos
+      description: Devuelve una lista de permisos. Puede realizar una búsqueda de texto.
       parameters:
-        - in: query
-          name: text_search
+        - name: text_search
+          in: query
+          required: false
           schema:
             type: string
-          description: Texto de búsqueda (name,description)
+          description: Texto de búsqueda para filtrar permisos por nombre o descripcion.
       responses:
         '200':
-          description: Permisos filtrados obtenidos exitosamente
+          description: Éxito
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Permission'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Nombre del permiso
+                        permission_id:
+                          type: integer
+                          description: ID del permiso
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+                  message:
+                    type: string
+                    description: Mensaje de operación realizada
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 components:
   schemas:
-    UserSchema:
+    User:
       type: object
       properties:
-        name:
-          type: string
-        last_name:
-          type: string
-        email:
-          type: string
-          format: email
-        password:
-          type: string
-          format: password
-        role:
-          type: integer
-      required:
-        - name
-        - last_name
-        - email
-        - password
-    UserSchemaView:
-      type: object
-      properties:
-        user_id:
-          type: string
-        name:
-          type: string
-        last_name:
-          type: string
-        email:
-          type: string
-          format: email
-        role:
-          type: string
-          enum: [Admin, User, Moderator]
-    WetlandSchema:
-      type: object
-      properties:
-        name:
-          type: string
-        location:
-          type: string
-        status:
-          type: string
-          enum: [ACTIVE, INACTIVE]
-        description:
-          type: string
         created_at:
           type: string
           format: date-time
+          example: "2024-11-08T14:10:57.036821"
+        email:
+          type: string
+          format: email
+          example: "euwdddrer9@gmail.com"
+        first_name:
+          type: string
+          example: "Mona"
+        last_name:
+          type: string
+          example: "Pouros"
+        role_id:
+          type: integer
+          example: 1
+        second_last_name:
+          type: string
+          example: ""
+        second_name:
+          type: string
+          example: ""
         updated_at:
           type: string
           format: date-time
+          example: "2024-11-08T14:10:57.036821"
+        user_id:
+          type: string
+          format: uuid
+          example: "73ff0f25-6374-49b6-a2bf-af18a987c55a"
+    UserSchema:
+      type: object
+      properties:
+         email:
+          type: string
+          format: email
+          example: "euwdddrer9@gmail.com"
+         first_name:
+          type: string
+          example: "Mona"
+         last_name:
+          type: string
+          example: "Pouros"
+         role_id:
+          type: integer
+          example: 1
+         second_last_name:
+          type: string
+          example: ""
+         second_name:
+          type: string
+          example: ""
+         password:
+          type: string
+          example: "123"
       required:
-        - name
-        - location
-        - status
+        - first_name
+        - last_name
+        - email
+        - password
+    UserSchema_U:
+      type: object
+      properties:
+         email:
+          type: string
+          format: email
+          example: "euwdddrer9@gmail.com"
+         first_name:
+          type: string
+          example: "Mona"
+         last_name:
+          type: string
+          example: "Pouros"
+         role_id:
+          type: integer
+          example: 1
+         second_last_name:
+          type: string
+          example: ""
+         second_name:
+          type: string
+          example: ""
+      required:
+        - first_name
+        - last_name
+        - email
+        - password
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: "Success."
+
+    Paging:
+      type: object
+      properties:
+        current_page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 4
+        total_count:
+          type: integer
+          example: 1
+        total_pages:
+          type: integer
+          example: 1
+
+    Response:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        errors:
+          $ref: '#/components/schemas/Error'
+        paging:
+          $ref: '#/components/schemas/Paging'
+
+    ResponseWithUserObject:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/User'
+        errors:
+          $ref: '#/components/schemas/Error'
+        message:
+          type: string
+          example: "Operacion Realizada Correctamente"
+
+    ResponseWithMessage:
+      type: object
+      properties:
+        data:
+          type: object
+          example: {}
+        errors:
+          $ref: '#/components/schemas/Error'
+        message:
+          type: string
+          example: "La entidad ha sido creado correctamente!"
+    Wetland:
+      type: object
+      properties:
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-10-24T15:30:17.936855-05:00"
+        latitude:
+          type: string
+          example: "-21.1075"
+        location:
+          type: string
+          example: "WS"
+        longitude:
+          type: string
+          example: "-7.6789"
+        name:
+          type: string
+          example: "hard drive"
+        status:
+          type: string
+          example: "NORMAL"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-10-26T16:20:38.228060-05:00"
+        wetland_id:
+          type: integer
+          example: 4
+    WetlandPost:
+      type: object
+      properties:
+        latitude:
+          type: string
+          example: "-21.1075"
+        location:
+          type: string
+          example: "WS"
+        longitude:
+          type: string
+          example: "-7.6789"
+        name:
+          type: string
+          example: "hard drive"
+        status:
+          type: string
+          example: "NORMAL"
+
+
+    ResponseWithWetlandData:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Wetland'
+        errors:
+          $ref: '#/components/schemas/Error'
+        paging:
+          $ref: '#/components/schemas/Paging'
+
+    ResponseWithWetlandObject:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Wetland'
+        errors:
+          $ref: '#/components/schemas/Error'
+        message:
+          type: string
+          example: "Operacion Realizada Correctamente"
     Node:
       type: object
       properties:
@@ -966,6 +1925,51 @@ components:
         - wetland_id
         - location
         - status
+    NodePost:
+      type: object
+      properties:
+        str_MAC:
+          type: string
+        wetland_id:
+          type: integer
+        location:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE]
+        last_connection:
+          type: string
+          format: date-time
+        installation_date:
+          type: string
+          format: date-time
+      required:
+        - str_MAC
+        - wetland_id
+        - location
+        - status
+    ResponseWithNodeData:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Node'
+        errors:
+          $ref: '#/components/schemas/Error'
+        paging:
+          $ref: '#/components/schemas/Paging'
+    
+    ResponseWithNodeObject:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Node'
+        errors:
+          $ref: '#/components/schemas/Error'
+        message:
+          type: string
+          example: "Operacion Realizada Correctamente"
     Sensor:
       type: object
       properties:
@@ -992,6 +1996,46 @@ components:
         - name
         - type_sensor
         - status
+    SensorPost:
+      type: object
+      properties:
+        name:
+          type: string
+        type_sensor:
+          type: string
+          enum: [PH, OD, TEMP, TURB, CAUD_EN, CAUD_SAL]
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE]
+        purchase_date:
+          type: string
+          format: date-time
+      required:
+        - name
+        - type_sensor
+        - status
+    ResponseWithSensorList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Sensor'
+        errors:
+          $ref: '#/components/schemas/Error'
+        paging:
+          $ref: '#/components/schemas/Paging'
+    ResponseWithSensorObject:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Sensor'
+        errors:
+          $ref: '#/components/schemas/Error'
+        message:
+          type: string
+          example: "Operacion Realizada Correctamente"
+    
     SensorSchema:
       type: object
       properties:
@@ -1039,10 +2083,38 @@ components:
           type: string
           format: date-time
           description: Fecha de última actualización del rol
-        permissions:
+    ResponseWithRoleData:
+      type: object
+      properties:
+        data:
           type: array
           items:
-            $ref: '#/components/schemas/Permission'
+            $ref: '#/components/schemas/Role'
+        errors:
+          $ref: '#/components/schemas/Error'
+        paging:
+          $ref: '#/components/schemas/Paging'
+    ResponseWithRoleObject:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Role'
+        errors:
+          $ref: '#/components/schemas/Error'
+        message:
+          type: string
+          example: "Operacion Realizada Correctamente"
+    RolePost:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          description: Nombre del rol
+        description:
+          type: string
+          maxLength: 500
+          description: Descripción del rol
 
     Permission:
       type: object
@@ -1070,6 +2142,43 @@ components:
           type: string
           format: date-time
           description: Fecha de última actualización del permiso
+    PermissionPost:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          description: Nombre del permiso
+        code:
+          type: string
+          maxLength: 100
+          description: Código único del permiso
+        description:
+          type: string
+          maxLength: 100
+          description: Descripción del permiso
+    ResponseWithPermissionObject:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Permission'
+        errors:
+          $ref: '#/components/schemas/Error'
+        message:
+          type: string
+          example: "Operacion Realizada Correctamente"
+    
+    ResponseWithpermissionList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Permission'
+        errors:
+          $ref: '#/components/schemas/Error'
+        paging:
+          $ref: '#/components/schemas/Paging'
 
     PermissionListSchema:
       type: object
@@ -1252,3 +2361,26 @@ components:
         message:
           type: string
           example: "Operacion Realizada Correctamente"
+    Errors:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Código de estado
+        message:
+          type: string
+          description: Descripción del error
+    ErrorResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+          description: Array vacío si no se encuentran datos.
+        errors:
+          $ref: '#/components/schemas/Errors'
+        message:
+          type: string
+          description: Mensaje de error o de no disponibilidad de datos
+          

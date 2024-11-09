@@ -6,8 +6,10 @@ def forbidden_message(details="Access to this resource is forbidden."):
 def bad_request_message(details="Invalid request.",message= "Bad request"):
     return json_structure_error(message= message,details=details, code=400)
 
-def not_found_message(entity = "Elemento",details="Not Found"):
-    return json_structure_error(message= f"El {entity} que intentas buscar no existe",details=details, code=404)
+def not_found_message(entity=None, details="Not Found", message=None):
+    if message is None:
+        message = f"El {entity if entity else 'Elemento'} que intentas buscar no existe"
+    return json_structure_error(message=message, details=details, code=404)
 
 def unauthorized_message(details="Unauthorized access."):
     return json_structure_error(message= "Usted no se encuentra autorizado.",details=details, code=401)

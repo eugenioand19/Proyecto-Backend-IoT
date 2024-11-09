@@ -19,7 +19,8 @@ def get_all_permissions(pagelink):
         query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order)
         
         permissions_paginated = query.paginate(page=pagelink.page, per_page=pagelink.page_size, error_out=False)
-
+        if not permissions_paginated.items:
+            return not_found_message(message="Parece que aun no hay datos")
         data = permission_schema_many.dump(permissions_paginated)
         
         return pagination_response(permissions_paginated.total,permissions_paginated.pages,permissions_paginated.page,permissions_paginated.per_page,data=data)
@@ -39,7 +40,8 @@ def get_all_permissions_select(text_search):
             query = query.filter(search_filter)
         
         query = query.with_entities(Permission.permission_id, Permission.name).all()
-
+        if not query:
+            return not_found_message(message="Parece que aun no hay datos")
         data = permission_schema_many.dump(query)
         
         return ok_message(data=data)

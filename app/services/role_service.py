@@ -22,7 +22,8 @@ def get_all_roles(pagelink):
         query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order)
         
         roles_paginated = query.paginate(page=pagelink.page, per_page=pagelink.page_size, error_out=False)
-
+        if not roles_paginated.items:
+            return not_found_message(message="Parece que aun no hay datos")
         data = role_schema_many.dump(roles_paginated)
         
         return pagination_response(roles_paginated.total,roles_paginated.pages,roles_paginated.page,roles_paginated.per_page,data=data)
@@ -62,7 +63,8 @@ def get_all_role_select(text_search):
             query = query.filter(search_filter)
         
         query = query.with_entities(Role.role_id, Role.name,Role.description).all()
-
+        if not query:
+            return not_found_message(message="Parece que aun no hay datos")
         data = role_schema_many.dump(query)
         
         return ok_message(data=data)

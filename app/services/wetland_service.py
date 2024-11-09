@@ -28,7 +28,8 @@ def get_all_wetlands(pagelink,statusList):
         query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order, statusList=statusList)
         
         wetlands_paginated = query.paginate(page=pagelink.page, per_page=pagelink.page_size, error_out=False)
-
+        if not wetlands_paginated.items:
+            return not_found_message(message="Parece que aun no hay datos")
         data = wetland_schema_many.dump(wetlands_paginated)
         
         return pagination_response(wetlands_paginated.total,wetlands_paginated.pages,wetlands_paginated.page,wetlands_paginated.per_page,data=data)
@@ -48,7 +49,8 @@ def get_all_wetland_select(text_search):
             query = query.filter(search_filter)
         
         query = query.with_entities(Wetland.wetland_id, Wetland.name).all()
-
+        if not query:
+            return not_found_message(message="Parece que aun no hay datos")
         data = wetland_schema_many.dump(query)
         
         return ok_message(data=data)

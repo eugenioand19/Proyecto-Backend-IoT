@@ -13,6 +13,7 @@ from app.schemas.wetland_schema import WetlandQuerySchema, WetlandQuerySelectSch
 from app.utils.error.error_handlers import ResourceNotFound
 from app.utils.error.error_responses import *
 from app.utils.pagination.page_link import create_page_link
+from app.utils.success_responses import ok_message
 wetland_bp = Blueprint('wetland', __name__, url_prefix='/api')
 
 wetland_schema = WetlandSchema()
@@ -63,7 +64,7 @@ def get_wetland_select():
 def get_wetland(id):
     try:
         wetland = get_wetland_by_id(id)
-        return wetland
+        return ok_message(wetland)
     except ResourceNotFound as e:
         return not_found_message(entity="Humedal", details=str(e))
     except Exception as e:

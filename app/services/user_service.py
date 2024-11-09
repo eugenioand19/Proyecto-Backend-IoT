@@ -23,7 +23,8 @@ def get_users_service(pagelink):
         query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order)
         
         users_paginated = query.paginate(page=pagelink.page, per_page=pagelink.page_size, error_out=False)
-
+        if not users_paginated.items:
+            return not_found_message(message="Parece que aun no hay datos")
         data = user_schema_many.dump(users_paginated)
         
         return pagination_response(users_paginated.total,users_paginated.pages,users_paginated.page,users_paginated.per_page,data=data)

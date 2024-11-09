@@ -13,6 +13,7 @@ from app.schemas.node_schema import NodeQuerySchema, NodeQuerySelectSchema,NodeS
 from app.utils.error.error_handlers import ResourceNotFound, ValidationErrorExc
 from app.utils.error.error_responses import *
 from app.utils.pagination.page_link import create_page_link
+from app.utils.success_responses import ok_message
 node_bp = Blueprint('node', __name__, url_prefix='/api')
 
 node_schema = NodeSchema()
@@ -44,7 +45,8 @@ def get_nodes():
         return server_error_message(details=str(e))
 
 @node_bp.route('/node-select', methods=['GET'])
-def get_node_select():
+@node_bp.route('/node-select/<int:wetland_id>', methods=['GET'])
+def get_node_select(wetland_id=None):
     try:
         schema = NodeQuerySelectSchema()
         try:
@@ -55,7 +57,7 @@ def get_node_select():
         #get se params
         text_search = params.get('text_search', '')
         
-        nodes = get_all_node_select(text_search)
+        nodes = get_all_node_select(text_search,wetland_id)
         return nodes
     except Exception as e:
         return server_error_message(details=str(e))
@@ -64,9 +66,9 @@ def get_node_select():
 def get_node(id):
     try:
         node = get_node_by_id(id)
-        return node
+        return ok_message(node)
     except ResourceNotFound as e:
-        return not_found_message(entity="Alerta", details=str(e))
+        return not_found_message(entity="Nodo", details=str(e))
     except Exception as e:
         return server_error_message(details=str(e))
 

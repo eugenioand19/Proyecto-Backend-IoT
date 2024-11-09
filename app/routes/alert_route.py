@@ -10,6 +10,7 @@ from app.schemas.alert_schema import AlertQuerySchema,AlertSchema
 from app.utils.error.error_handlers import ResourceNotFound
 from app.utils.error.error_responses import *
 from app.utils.pagination.page_link import create_time_page_link
+from app.utils.success_responses import ok_message
 alert_bp = Blueprint('alert', __name__, url_prefix='/api')
 
 alert_schema = AlertSchema()
@@ -46,7 +47,7 @@ def get_alerts():
 def get_alert(id):
     try:
         alert = get_alert_by_id(id)
-        return alert
+        return ok_message(alert)
     except ResourceNotFound as e:
         return not_found_message(entity="Alerta", details=str(e))
     except Exception as e:

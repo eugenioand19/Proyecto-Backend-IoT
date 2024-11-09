@@ -22,6 +22,8 @@ def get_all_alerts(pagelink,statusList,severityList):
         
         alerts_paginated = query.paginate(page=pagelink.page_link.page, per_page=pagelink.page_link.page_size, error_out=False)
 
+        if not alerts_paginated.items:
+            return not_found_message(message="Parece que aun no hay datos")
         data = alert_schema_many.dump(alerts_paginated)
         
         return pagination_response(alerts_paginated.total,alerts_paginated.pages,alerts_paginated.page,alerts_paginated.per_page,data=data)

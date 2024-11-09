@@ -10,6 +10,7 @@ from app.services.permission_service import (
 from app.schemas.permission_schema import PermissionQuerySchema,PermissionSchema,PermissionQuerySelectSchema
 from app.utils.error.error_responses import *
 from app.utils.pagination.page_link import create_page_link
+from app.utils.success_responses import ok_message
 permission_bp = Blueprint('permission', __name__, url_prefix='/api')
 
 permission_schema = PermissionSchema()
@@ -63,7 +64,7 @@ def get_permissions_select():
 def get_permission(id):
     try:
         permission = get_permission_by_id(id)
-        return permission
+        return ok_message(permission)
     except Exception as e:
         return server_error_message(details=str(e))
 

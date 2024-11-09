@@ -12,6 +12,7 @@ from app.schemas.role_schema import RoleQuerySchema, RoleQuerySelectSchema,RoleS
 from app.utils.error.error_handlers import ResourceNotFound
 from app.utils.error.error_responses import *
 from app.utils.pagination.page_link import create_page_link
+from app.utils.success_responses import ok_message
 role_bp = Blueprint('role', __name__, url_prefix='/api')
 
 role_schema = RoleSchema()
@@ -61,7 +62,7 @@ def get_role_select():
 def get_role(id):
     try:
         role = get_role_by_id(id)
-        return role
+        return ok_message(role)
     except ResourceNotFound as e:
         return not_found_message(entity="Rol", details=str(e))
     except Exception as e:

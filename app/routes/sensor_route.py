@@ -11,6 +11,7 @@ from app.services.sensor_service import (
 from app.schemas.sensor_schema import SensorQuerySchema, SensorQuerySelectSchema,SensorSchema
 from app.utils.error.error_responses import *
 from app.utils.pagination.page_link import create_page_link
+from app.utils.success_responses import ok_message
 sensor_bp = Blueprint('sensor', __name__, url_prefix='/api')
 
 sensor_schema = SensorSchema()
@@ -46,7 +47,7 @@ def get_sensors():
 def get_sensor(id):
     try:
         sensor = get_sensor_by_id(id)
-        return sensor
+        return ok_message(sensor)
     except Exception as e:
         return server_error_message(details=str(e))
 
@@ -94,7 +95,8 @@ def get_all_typesensors():
         return server_error_message(details=str(e))
 
 @sensor_bp.route('/sensor-select', methods=['GET'])
-def get_sensor_select():
+@sensor_bp.route('/sensor-select/<int:node_id>', methods=['GET'])
+def get_sensor_select(node_id=None):
     try:
         schema = SensorQuerySelectSchema()
         try:
@@ -105,7 +107,7 @@ def get_sensor_select():
         #get se params
         text_search = params.get('text_search', '')
         
-        sensors = get_all_sensor_select(text_search)
+        sensors = get_all_sensor_select(text_search,node_id)
         return sensors
     except Exception as e:
         return server_error_message(details=str(e))
