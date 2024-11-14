@@ -6,6 +6,7 @@ from app.services.data_history_service import (
     update_data_history,
     delete_data_history
 )
+from app.utils.error.error_responses import server_error_message
 
 data_history_bp = Blueprint('data_history', __name__, url_prefix='/api')
 
@@ -35,8 +36,8 @@ def create_data_historys():
     except ValueError as ve:
         return jsonify({'error': str(ve)}), 400  # Error de validación
     except Exception as e:
-        print(e)
-        return jsonify({'error': str(e)}), 500
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @data_history_bp.route('/data_historys/<int:id>', methods=['PUT'])
 def update_data_history_route(id):

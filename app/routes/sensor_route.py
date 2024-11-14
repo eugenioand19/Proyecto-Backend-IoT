@@ -49,7 +49,8 @@ def get_sensor(id):
         sensor = get_sensor_by_id(id)
         return ok_message(sensor)
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @sensor_bp.route('/sensors', methods=['POST'])
 def create_sensors():
@@ -61,7 +62,8 @@ def create_sensors():
         
         return create_sensor(req)
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @sensor_bp.route('/sensors/<int:id>', methods=['PUT'])
 def update_sensor_route(id):
@@ -76,7 +78,8 @@ def update_sensor_route(id):
         
         return response
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @sensor_bp.route('/sensors/<int:id>', methods=['DELETE'])
 def delete_sensor_route(id):
@@ -84,7 +87,8 @@ def delete_sensor_route(id):
         
         return delete_sensor(id)
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @sensor_bp.route('/sensors/type_sensors', methods=['GET'])
 def get_all_typesensors():
@@ -92,7 +96,8 @@ def get_all_typesensors():
     try:
         return get_all_type_sensors()
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @sensor_bp.route('/sensor-select', methods=['GET'])
 @sensor_bp.route('/sensor-select/<int:node_id>', methods=['GET'])
@@ -110,4 +115,5 @@ def get_sensor_select(node_id=None):
         sensors = get_all_sensor_select(text_search,node_id)
         return sensors
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)

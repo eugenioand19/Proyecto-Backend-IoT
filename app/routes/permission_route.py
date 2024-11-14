@@ -37,7 +37,8 @@ def get_permissions():
         permissions = get_all_permissions(page_link)
         return permissions
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @permission_bp.route('/permissions-select', methods=['GET'])
 def get_permissions_select():
@@ -58,7 +59,8 @@ def get_permissions_select():
         permissions = get_all_permissions_select(text_search)
         return permissions
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @permission_bp.route('/permissions/<int:id>', methods=['GET'])
 def get_permission(id):
@@ -66,7 +68,8 @@ def get_permission(id):
         permission = get_permission_by_id(id)
         return ok_message(permission)
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @permission_bp.route('/permissions', methods=['POST'])
 def create_permissions():
@@ -78,7 +81,8 @@ def create_permissions():
         
         return create_permission(req)
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @permission_bp.route('/permissions/<int:id>', methods=['PUT'])
 def update_permission_route(id):
@@ -93,11 +97,13 @@ def update_permission_route(id):
         
         return response
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @permission_bp.route('/permissions/<int:id>', methods=['DELETE'])
 def delete_permission_route(id):
     try:
         return delete_permission(id)
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)

@@ -41,7 +41,8 @@ def get_alerts():
 
         return alerts
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @alert_bp.route('/alerts/<int:id>', methods=['GET'])
 def get_alert(id):
@@ -51,7 +52,8 @@ def get_alert(id):
     except ResourceNotFound as e:
         return not_found_message(entity="Alerta", details=str(e))
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @alert_bp.route('/alerts', methods=['POST'])
 def create_alerts():
@@ -63,7 +65,8 @@ def create_alerts():
         
         return create_alert(req)
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @alert_bp.route('/alerts/<int:id>', methods=['PUT'])
 def update_alert_route(id):
@@ -78,11 +81,13 @@ def update_alert_route(id):
         
         return response
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @alert_bp.route('/alerts/<int:id>', methods=['DELETE'])
 def delete_alert_route(id):
     try:
         return delete_alert(id)
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)

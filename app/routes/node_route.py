@@ -42,7 +42,8 @@ def get_nodes():
         nodes = get_all_nodes(page_link,statusList=statusList,typesList=typesList)
         return nodes
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @node_bp.route('/node-select', methods=['GET'])
 @node_bp.route('/node-select/<int:wetland_id>', methods=['GET'])
@@ -60,7 +61,8 @@ def get_node_select(wetland_id=None):
         nodes = get_all_node_select(text_search,wetland_id)
         return nodes
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @node_bp.route('/nodes/<int:id>', methods=['GET'])
 def get_node(id):
@@ -70,7 +72,8 @@ def get_node(id):
     except ResourceNotFound as e:
         return not_found_message(entity="Nodo", details=str(e))
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @node_bp.route('/nodes', methods=['POST'])
 def create_nodes():
@@ -82,7 +85,8 @@ def create_nodes():
         
         return create_node(req)
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @node_bp.route('/nodes/<int:id>', methods=['PUT'])
 def update_node_route(id):
@@ -97,7 +101,8 @@ def update_node_route(id):
         
         return response
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @node_bp.route('/nodes/<int:id>', methods=['DELETE'])
 def delete_node_route(id):
@@ -105,7 +110,8 @@ def delete_node_route(id):
         
         return delete_node(id)
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
     
 
 @node_bp.route('/nodes/<int:node_id>/update_sensors', methods=['POST'])

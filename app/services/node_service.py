@@ -213,6 +213,7 @@ def assing_sensors_service(node_id, data):
         return bad_request_message(message= str(ve),details=str(ve))
     except Exception as err:
         db.session.rollback()
-        return server_error_message(details=str(err))
+        error_message = ' '.join(str(err).split()[:5])
+        return server_error_message(details=error_message)
     
 

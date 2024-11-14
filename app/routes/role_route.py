@@ -39,7 +39,8 @@ def get_roles():
         roles = get_all_roles(page_link)
         return roles
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @role_bp.route('/role-select', methods=['GET'])
 def get_role_select():
@@ -56,7 +57,8 @@ def get_role_select():
         roles = get_all_role_select(text_search)
         return roles
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @role_bp.route('/roles/<int:id>', methods=['GET'])
 def get_role(id):
@@ -66,7 +68,8 @@ def get_role(id):
     except ResourceNotFound as e:
         return not_found_message(entity="Rol", details=str(e))
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @role_bp.route('/roles', methods=['POST'])
 def create_roles():
@@ -78,7 +81,8 @@ def create_roles():
         
         return create_role(req)
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @role_bp.route('/roles/<int:id>', methods=['PUT'])
 def update_role_route(id):
@@ -93,7 +97,8 @@ def update_role_route(id):
         
         return response
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @role_bp.route('/roles/<int:id>', methods=['DELETE'])
 def delete_role_route(id):

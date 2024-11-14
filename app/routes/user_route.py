@@ -37,7 +37,8 @@ def get_users():
         #response ok
         return get_users_service(page_link)
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
     
 @user_bp.route('/users/<uuid:user_id>', methods=['GET'])
 def get_user(user_id):
@@ -45,7 +46,8 @@ def get_user(user_id):
         user = get_user_by_id(user_id)
         return user
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @user_bp.route('/users', methods=['POST'])
 def create_users():
@@ -57,7 +59,8 @@ def create_users():
         
         return create_user(request.json)
     except Exception as e:
-        return server_error_message(details=str(e)) 
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
         
     
 
@@ -74,7 +77,8 @@ def update_user_route(user_id):
         
         return response
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @user_bp.route('/users/<uuid:user_id>', methods=['DELETE'])
 def delete_user_route(user_id):
@@ -82,4 +86,5 @@ def delete_user_route(user_id):
         
         return delete_user(user_id)
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)

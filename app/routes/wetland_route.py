@@ -43,7 +43,8 @@ def get_wetlands():
         wetlands = get_all_wetlands(page_link,statusList=statusList)
         return wetlands
     except Exception as e:
-         return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @wetland_bp.route('/wetland-select', methods=['GET'])
 def get_wetland_select():
@@ -60,7 +61,8 @@ def get_wetland_select():
         wetlands = get_all_wetland_select(text_search)
         return wetlands
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
     
 @wetland_bp.route('/wetlands/<int:id>', methods=['GET'])
 def get_wetland(id):
@@ -70,7 +72,8 @@ def get_wetland(id):
     except ResourceNotFound as e:
         return not_found_message(entity="Humedal", details=str(e))
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @wetland_bp.route('/wetlands', methods=['POST'])
 def create_wetlands():
@@ -82,7 +85,8 @@ def create_wetlands():
         
         return create_wetland(req)
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @wetland_bp.route('/wetlands/<int:id>', methods=['PUT'])
 def update_wetland_route(id):
@@ -97,7 +101,8 @@ def update_wetland_route(id):
         
         return response
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @wetland_bp.route('/wetlands/<int:id>', methods=['DELETE'])
 def delete_wetland_route(id):
@@ -106,7 +111,8 @@ def delete_wetland_route(id):
         return delete_wetland(id)
 
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 @wetland_bp.route('/wetlands-overview', methods=['GET'])
 def get_wetlands_dashboard():
@@ -114,8 +120,9 @@ def get_wetlands_dashboard():
     try:
         
         return get_wetlands_overview()
-    except Exception as err:
-        return server_error_message(details=str(err))
+    except Exception as e:
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
 
 
 @wetland_bp.route('/wetlands-overview/<int:id_wetland>', methods=['GET'])
@@ -153,4 +160,5 @@ def get_reports_wetland(wetland_id = None, node_id= None, sensor_id = None):
 
         return report
     except Exception as e:
-        return server_error_message(details=str(e))
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
