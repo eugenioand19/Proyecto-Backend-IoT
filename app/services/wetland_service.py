@@ -247,6 +247,7 @@ def get_wetlands_details(wetland_id=None, node_id=None,sensor_id=None,is_latest=
             Wetland.location.label("wetland_location"),
             Wetland.status.label("wetland_status"),
             Sensor.sensor_id.label("sensor_id"),
+            Sensor.name.label("name_sensor"),
             Node.node_id.label("node_id"),
             Node.name.label("node_name"),
             Node.location.label("node_location"),
@@ -345,9 +346,10 @@ def wetlands_reports(wetland_id=None, node_id=None,sensor_id=None, pagelink=None
             
             report={
 
-                "wetland": {"name": row.wetland_name},
-                "node": {"name": row.node_name},
+                "wetland": {"name": row.wetland_name, "location": row.wetland_location},
+                "node": {"name": row.node_name, "location":row.node_location},
                 "sensor": {
+                    "name": row.name_sensor,
                     "register_date": row.register_date,
                     "value": row.data_history_value,
                     "type_sensor": row.sensor_name,
