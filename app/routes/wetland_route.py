@@ -126,7 +126,7 @@ def get_wetlands_dashboard_details(id_wetland):
         return get_wetlands_overview_details(id_wetland)
     except Exception as err:
         return server_error_message(details=str(err))
-
+@wetland_bp.route('/wetland-report', methods=['GET'])
 @wetland_bp.route('/wetland-report/<int:wetland_id>', methods=['GET'])
 @wetland_bp.route('/wetland-report/<int:wetland_id>/<int:node_id>', methods=['GET'])
 @wetland_bp.route('/wetland-report/<int:wetland_id>/<int:node_id>/<int:sensor_id>', methods=['GET'])
