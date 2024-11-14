@@ -153,6 +153,11 @@ def get_reports_wetland(wetland_id = None, node_id= None, sensor_id = None):
         start_time = params.get('start_time', '')
         end_time = params.get('end_time', '')
         sensor_type = params.get('sensor_type', '')
+
+        if start_time and not end_time or end_time and not start_time:
+            return bad_request_message(message="Deben estar ambas fechas diligenciadas")
+
+
         #create de pagination object
         page_link = create_time_page_link(page_size,page,'',sort_property,sort_order,start_time,end_time)
 
