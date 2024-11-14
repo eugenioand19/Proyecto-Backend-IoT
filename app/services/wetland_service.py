@@ -1,4 +1,6 @@
 
+from datetime import datetime
+import time
 from flask import jsonify
 from sqlalchemy import and_, asc, desc, func, or_,join,select
 from app.models.data_history import DataHistory
@@ -13,12 +15,14 @@ from app.utils.error.error_handlers import ResourceNotFound
 from app.utils.success_responses import pagination_response,created_ok_message,ok_message
 from app.utils.error.error_responses import bad_request_message, not_found_message,server_error_message
 from db import db
+from app.models.type_sensor import TypeSensor
 from sqlalchemy.orm import aliased
 
 
 
 wetland_schema = WetlandSchema()
 wetland_schema_many = WetlandSchema(many=True)
+
 
 def get_all_wetlands(pagelink,statusList):
     try:
@@ -30,6 +34,7 @@ def get_all_wetlands(pagelink,statusList):
         wetlands_paginated = query.paginate(page=pagelink.page, per_page=pagelink.page_size, error_out=False)
         if not wetlands_paginated.items:
             return not_found_message(message="Parece que aun no hay datos")
+        
         data = wetland_schema_many.dump(wetlands_paginated)
         
         return pagination_response(wetlands_paginated.total,wetlands_paginated.pages,wetlands_paginated.page,wetlands_paginated.per_page,data=data)
@@ -100,7 +105,7 @@ def delete_wetland(wetland_id):
     except ResourceNotFound as e:
         return not_found_message(details=str(e),entity="Humedal")
 
-def apply_filters_and_pagination(query, text_search=None, sort_order=None, statusList=None):
+def apply_filters_and_pagination(query, text_search=None, sort_order=None, statusList=None,starTime=None,endTime=None):
     
     
     if statusList:
@@ -117,18 +122,24 @@ def apply_filters_and_pagination(query, text_search=None, sort_order=None, statu
         )
         query = query.filter(search_filter)
 
-    
-    if sort_order.property_name:
-        if sort_order.direction == 'ASC':
-            query = query.order_by(asc(sort_order.property_name))
-        else:
-            query = query.order_by(desc(sort_order.property_name))
+    if starTime and endTime:
+        
+        start_time_dt = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(float(starTime)/1000))
+        end_time_dt = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(float(endTime)/1000))
+        query = query.filter(DataHistory.created_at.between(start_time_dt, end_time_dt))
+
+    if sort_order:
+        if sort_order.property_name:
+            if sort_order.direction == 'ASC':
+                query = query.order_by(asc(sort_order.property_name))
+            else:
+                query = query.order_by(desc(sort_order.property_name))
 
     return query
 
 def get_wetlands_overview():
     
-    query= get_wetlands_details()
+    query= get_wetlands_details(is_latest=True)
 
     # Procesar y estructurar los resultados
     wetlands = {}
@@ -165,8 +176,7 @@ def get_wetlands_overview_details(wetland_id=None, node_id=None):
             if res is None:
                 raise ResourceNotFound("Nodo no encontrado")
             
-
-        query= get_wetlands_details(wetland_id=wetland_id)
+        query= get_wetlands_details(wetland_id=wetland_id,is_latest=True)
 
         # Procesar y estructurar los resultados
         wetlands = {}
@@ -217,7 +227,7 @@ def get_wetlands_overview_details(wetland_id=None, node_id=None):
         return not_found_message(details=str(err))
     
 
-def get_wetlands_details(wetland_id=None, node_id=None):
+def get_wetlands_details(wetland_id=None, node_id=None,sensor_id=None,is_latest=False):
     # Crear una subconsulta con un alias explícito para obtener la última actualización de cada sensor
     latest = (
         db.session.query(
@@ -242,6 +252,7 @@ def get_wetlands_details(wetland_id=None, node_id=None):
             Node.location.label("node_location"),
             DataHistory.value.label("data_history_value"),
             DataHistory.updated_at.label("last_updated"),
+            DataHistory.register_date.label("register_date"),
             TypeSensor.code.label("sensor_code"),
             TypeSensor.name.label("sensor_name"),
             TypeSensor.unity.label("type_sensor_unity")
@@ -250,11 +261,14 @@ def get_wetlands_details(wetland_id=None, node_id=None):
         .join(SensorNode, (Node.node_id == SensorNode.node_id) & (SensorNode.status == 'ACTIVE'))
         .join(Sensor, Sensor.sensor_id == SensorNode.sensor_id)
         .join(TypeSensor, TypeSensor.code == Sensor.type_sensor)
-        .join(latest, latest.c.sensor_id == Sensor.sensor_id)  # Unimos con la subconsulta 'latest' usando su alias explícito
-        .join(DataHistory, (DataHistory.sensor_id == Sensor.sensor_id) & (DataHistory.updated_at == latest.c.latest_update))
         .order_by(Wetland.wetland_id)
     )
-
+    
+    if is_latest:
+        query = query.join(latest, latest.c.sensor_id == Sensor.sensor_id).join(DataHistory, (DataHistory.sensor_id == Sensor.sensor_id) & (DataHistory.updated_at == latest.c.latest_update))
+    else:
+        query = query.join(DataHistory, (DataHistory.sensor_id == Sensor.sensor_id))
+        
     # Agregar filtros dinámicos según los parámetros proporcionados
     if wetland_id is not None:
         query = query.filter(Wetland.wetland_id == wetland_id)
@@ -262,4 +276,88 @@ def get_wetlands_details(wetland_id=None, node_id=None):
     if node_id is not None:
         query = query.filter(Node.node_id == node_id)
 
+    if sensor_id is not None:
+        query = query.filter(Sensor.sensor_id == sensor_id)
+
     return query
+
+def apply_filters_reports(query,  sort_order=None,starTime=None,endTime=None, type_sensor=None):
+    
+    
+
+    if starTime and endTime:
+        
+
+        start_time_dt = datetime.utcfromtimestamp(float(starTime) / 1000)
+        start_time_dt = start_time_dt.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+
+        end_time_dt = datetime.utcfromtimestamp(float(endTime) / 1000)
+        end_time_dt = end_time_dt.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+       
+
+        #start_time_dt = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(float(starTime)/1000))
+        #end_time_dt = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(float(endTime)/1000))
+        #print(start_time_dt)
+        #print(end_time_dt)
+        
+        query = query.filter(DataHistory.register_date.between(start_time_dt, end_time_dt))
+
+    if sort_order:
+        if sort_order.property_name:
+            if sort_order.direction == 'ASC':
+                query = query.order_by(asc(sort_order.property_name))
+            else:
+                query = query.order_by(desc(sort_order.property_name))
+
+    if type_sensor:
+        query = query.filter(TypeSensor.code == type_sensor)
+
+    return query
+
+def wetlands_reports(wetland_id=None, node_id=None,sensor_id=None, pagelink=None, type_sensor = None):
+
+    try:
+        if wetland_id:
+            get_wetland_by_id(wetland_id)
+        
+        if node_id:
+            res = Node.query.get(node_id)
+            if res is None:
+                raise ResourceNotFound("Nodo no encontrado")
+
+        if sensor_id: 
+            sensor = Sensor.query.get(sensor_id)
+            if not sensor:
+                return not_found_message(entity="Sensor")
+    
+        query = get_wetlands_details(wetland_id=wetland_id, node_id=node_id, sensor_id=sensor_id, is_latest=False)
+        
+        query = apply_filters_reports(query=query, starTime=pagelink.start_time, sort_order = pagelink.page_link.sort_order, endTime=pagelink.end_time,type_sensor=type_sensor)
+
+        report_paginated = query.paginate(page=pagelink.page_link.page, per_page=pagelink.page_link.page_size, error_out=False)
+
+        if not report_paginated.items:
+            return not_found_message(message="Parece que aun no hay datos")
+        
+        list = []
+
+        for row in report_paginated:
+            
+            report={
+
+                "wetland": {"name": row.wetland_name},
+                "node": {"name": row.node_name},
+                "sensor": {
+                    "register_date": row.register_date,
+                    "value": row.data_history_value,
+                    "type_sensor": row.sensor_name,
+                    "unity": row.type_sensor_unity
+                }
+            }
+
+            list.append(report)
+            
+
+        return pagination_response(report_paginated.total,report_paginated.pages,report_paginated.page,report_paginated.per_page,data=list)
+    except ResourceNotFound as rnf:
+        return not_found_message(entity="Humedal, Nodo o sensor")

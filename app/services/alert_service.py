@@ -17,7 +17,7 @@ def get_all_alerts(pagelink,statusList,severityList):
         
         query = Alert.query
 
-        print(pagelink.page_link.text_search)
+        
         query = apply_filters_and_pagination(query, text_search = pagelink.page_link.text_search,sort_order=pagelink.page_link.sort_order, statusList=statusList, severityList=severityList,starTime= pagelink.start_time,endTime=pagelink.end_time)
         
         alerts_paginated = query.paginate(page=pagelink.page_link.page, per_page=pagelink.page_link.page_size, error_out=False)

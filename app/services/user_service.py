@@ -26,7 +26,6 @@ def get_users_service(pagelink):
         if not users_paginated.items:
             return not_found_message(message="Parece que aun no hay datos")
         data = user_schema_many.dump(users_paginated)
-        
         return pagination_response(users_paginated.total,users_paginated.pages,users_paginated.page,users_paginated.per_page,data=data)
     except Exception as e:
         print(e)

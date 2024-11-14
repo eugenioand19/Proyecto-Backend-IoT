@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from app.schemas.reports_schema import ReportQuerySchema
 from app.services.wetland_service import (
     get_all_wetland_select,
     get_all_wetlands,
@@ -7,12 +8,13 @@ from app.services.wetland_service import (
     get_wetlands_overview,
     get_wetlands_overview_details,
     update_wetland,
-    delete_wetland
+    delete_wetland,
+    wetlands_reports
 )
 from app.schemas.wetland_schema import WetlandQuerySchema, WetlandQuerySelectSchema,WetlandSchema
 from app.utils.error.error_handlers import ResourceNotFound
 from app.utils.error.error_responses import *
-from app.utils.pagination.page_link import create_page_link
+from app.utils.pagination.page_link import create_page_link, create_time_page_link
 from app.utils.success_responses import ok_message
 wetland_bp = Blueprint('wetland', __name__, url_prefix='/api')
 
@@ -124,3 +126,31 @@ def get_wetlands_dashboard_details(id_wetland):
         return get_wetlands_overview_details(id_wetland)
     except Exception as err:
         return server_error_message(details=str(err))
+
+@wetland_bp.route('/wetland-report/<int:wetland_id>', methods=['GET'])
+@wetland_bp.route('/wetland-report/<int:wetland_id>/<int:node_id>', methods=['GET'])
+@wetland_bp.route('/wetland-report/<int:wetland_id>/<int:node_id>/<int:sensor_id>', methods=['GET'])
+def get_reports_wetland(wetland_id = None, node_id= None, sensor_id = None):
+    try:
+        schema = ReportQuerySchema()
+        try:
+            params = schema.load(request.args)
+        except Exception as e:
+            return bad_request_message(details=str(e))
+        
+        #get se params
+        page_size = params['page_size']
+        page = params['page']
+        sort_property = params.get('sort_property', 'created_at')
+        sort_order = params.get('sort_order', 'ASC')
+        start_time = params.get('start_time', '')
+        end_time = params.get('end_time', '')
+        sensor_type = params.get('sensor_type', '')
+        #create de pagination object
+        page_link = create_time_page_link(page_size,page,'',sort_property,sort_order,start_time,end_time)
+
+        report = wetlands_reports(wetland_id=wetland_id, node_id=node_id, sensor_id=sensor_id,pagelink=page_link,type_sensor=sensor_type)
+
+        return report
+    except Exception as e:
+        return server_error_message(details=str(e))

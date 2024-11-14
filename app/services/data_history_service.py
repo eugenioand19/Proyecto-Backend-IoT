@@ -26,18 +26,28 @@ def get_data_history_by_id(data_history_id):
     except Exception as e:
         raise Exception("Error al obtener el nodo de sensor") from e
 
-def create_data_history(data):
+def create_data_history(data_list):
+    created_records = []
     try:
-        data_history = data_history_schema.load(data)  # Aquí se lanzará un ValidationError si falla
-        db.session.add(data_history)
-        db.session.commit()
-        return data_history_schema.dump(data_history)
+        # Itera sobre cada elemento en la lista de datos
+        for data in data_list:
+            # Valida y crea el objeto de historial de datos
+            data_history = data_history_schema.load(data)
+            db.session.add(data_history)
+            created_records.append(data_history)
+
+        db.session.commit()  # Realiza el commit después de agregar todos los registros
+        return data_history_schema.dump(created_records, many=True)  # Devuelve los registros en formato JSON
+
     except ValidationError as ve:
+        db.session.rollback()
         raise ValueError("Error en la validación de los datos") from ve
+
     except Exception as e:
         db.session.rollback()  # Asegúrate de revertir cambios en caso de error
-        raise Exception("Error al crear el nodo de sensor") from e
-
+        print(e)
+        raise Exception("Error al crear los registros de historial de datos") from e
+    
 def update_data_history(data_history_id, data):
     try:
         data_history = DataHistory.query.get(data_history_id)
