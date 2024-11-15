@@ -334,7 +334,7 @@ def wetlands_reports(wetland_id=None, node_id=None,sensor_id=None, pagelink=None
         query = get_wetlands_details(wetland_id=wetland_id, node_id=node_id, sensor_id=sensor_id, is_latest=False)
         
         query = apply_filters_reports(query=query, starTime=pagelink.start_time, sort_order = pagelink.page_link.sort_order, endTime=pagelink.end_time,type_sensor=type_sensor)
-
+        
         report_paginated = query.paginate(page=pagelink.page_link.page, per_page=pagelink.page_link.page_size, error_out=False)
 
         if not report_paginated.items:
@@ -361,5 +361,52 @@ def wetlands_reports(wetland_id=None, node_id=None,sensor_id=None, pagelink=None
             
 
         return pagination_response(report_paginated.total,report_paginated.pages,report_paginated.page,report_paginated.per_page,data=list)
+    except ResourceNotFound as rnf:
+        return not_found_message(entity="Humedal, Nodo o sensor")
+    
+def wetland_report_graph(wetland_id=None, node_id=None,sensor_id=None, pagelink=None, type_sensor = None):
+    try:
+        if wetland_id:
+            get_wetland_by_id(wetland_id)
+        
+        if node_id:
+            res = Node.query.get(node_id)
+            if res is None:
+                raise ResourceNotFound("Nodo no encontrado")
+
+        if sensor_id: 
+            sensor = Sensor.query.get(sensor_id)
+            if not sensor:
+                return not_found_message(entity="Sensor")
+
+        
+        query = get_wetlands_details(wetland_id=wetland_id, node_id=node_id, sensor_id=sensor_id, is_latest=False)
+        
+        query = apply_filters_reports(query=query, starTime=pagelink.start_time, endTime=pagelink.end_time,type_sensor=type_sensor)
+        
+        list = []
+
+        row = query.first()
+        if row:
+            report = {
+                "type_sensor": row.sensor_name
+                
+            }
+
+        list.append(report)
+        for row in query:
+            
+            report={
+                "sensor": {
+                    "name": row.name_sensor,
+                    "register_date": row.register_date,
+                    "value": row.data_history_value
+                }
+            }
+
+            list.append(report)
+
+
+        return ok_message(data=list)
     except ResourceNotFound as rnf:
         return not_found_message(entity="Humedal, Nodo o sensor")

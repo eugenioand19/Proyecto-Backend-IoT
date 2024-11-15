@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from app.schemas.reports_schema import ReportQuerySchema
+from app.schemas.reports_schema import ReportGraphQuerySchema, ReportQuerySchema
 from app.services.wetland_service import (
     get_all_wetland_select,
     get_all_wetlands,
@@ -9,6 +9,7 @@ from app.services.wetland_service import (
     get_wetlands_overview_details,
     update_wetland,
     delete_wetland,
+    wetland_report_graph,
     wetlands_reports
 )
 from app.schemas.wetland_schema import WetlandQuerySchema, WetlandQuerySelectSchema,WetlandSchema
@@ -133,6 +134,7 @@ def get_wetlands_dashboard_details(id_wetland):
         return get_wetlands_overview_details(id_wetland)
     except Exception as err:
         return server_error_message(details=str(err))
+
 @wetland_bp.route('/wetland-report', methods=['GET'])
 @wetland_bp.route('/wetland-report/<int:wetland_id>', methods=['GET'])
 @wetland_bp.route('/wetland-report/<int:wetland_id>/<int:node_id>', methods=['GET'])
@@ -165,5 +167,36 @@ def get_reports_wetland(wetland_id = None, node_id= None, sensor_id = None):
 
         return report
     except Exception as e:
+        print(e)
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
+
+@wetland_bp.route('/wetland-report-graph/<int:wetland_id>/<int:node_id>/<int:sensor_id>', methods=['GET'])
+def get_reports_graph_wetland(wetland_id = None, node_id= None, sensor_id = None):
+    try:
+        schema = ReportGraphQuerySchema()
+        try:
+            params = schema.load(request.args)
+        except Exception as e:
+            return bad_request_message(details=str(e))
+        
+        #get se params
+        start_time = params.get('start_time', '')
+        end_time = params.get('end_time', '')
+
+
+        if start_time and not end_time or end_time and not start_time:
+            return bad_request_message(message="Deben estar ambas fechas diligenciadas")
+
+        if wetland_id is None or node_id is None or sensor_id is None:
+            return bad_request_message(message="Debe tener todos los filtros seleccionados")
+        #create de pagination object
+        page_link = create_time_page_link('','','','','',start_time,end_time)
+
+        report = wetland_report_graph(wetland_id=wetland_id, node_id=node_id, sensor_id=sensor_id,pagelink=page_link)
+
+        return report
+    except Exception as e:
+        print(e)
         error_message = ' '.join(str(e).split()[:5])
         return server_error_message(details=error_message)
