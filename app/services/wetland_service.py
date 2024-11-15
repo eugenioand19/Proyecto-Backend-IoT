@@ -392,8 +392,12 @@ def wetland_report_graph(wetland_id=None, node_id=None,sensor_id=None, pagelink=
                 "type_sensor": row.sensor_name
                 
             }
+            list.append(report)
+        else:
+            return not_found_message(message="Parece que aun no hay datos")
 
-        list.append(report)
+
+        
         for row in query:
             
             report={
