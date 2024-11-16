@@ -291,10 +291,10 @@ def apply_filters_reports(query,  sort_order=None,starTime=None,endTime=None, ty
 
         start_time_dt = datetime.utcfromtimestamp(float(starTime) / 1000)
         start_time_dt = start_time_dt.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-
+    
         end_time_dt = datetime.utcfromtimestamp(float(endTime) / 1000)
         end_time_dt = end_time_dt.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-       
+        
 
         #start_time_dt = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(float(starTime)/1000))
         #end_time_dt = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(float(endTime)/1000))
@@ -389,6 +389,7 @@ def wetland_report_graph(wetland_id=None, node_id=None,sensor_id=None, pagelink=
         row = query.first()
         if row:
             report = {
+                "name_sensor": row.name_sensor,
                 "type_sensor": row.sensor_name
                 
             }
@@ -402,7 +403,6 @@ def wetland_report_graph(wetland_id=None, node_id=None,sensor_id=None, pagelink=
             
             report={
                 "sensor": {
-                    "name": row.name_sensor,
                     "register_date": row.register_date,
                     "value": row.data_history_value
                 }
