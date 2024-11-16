@@ -7,11 +7,13 @@ class UserSchema(SQLAlchemyAutoSchema):
         model = User
         load_instance = True
 
+
 class UserSchemaView(SQLAlchemyAutoSchema):
     class Meta:
         model = User
         exclude = ('password',)
         load_instance = True
+    role = fields.Str(required=False, description="Rol")
 
 
 class UserQuerySchema(Schema):

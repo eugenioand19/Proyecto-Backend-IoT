@@ -390,8 +390,8 @@ def wetland_report_graph(wetland_id=None, node_id=None,sensor_id=None, pagelink=
         if row:
             report = {
                 "name_sensor": row.name_sensor,
-                "type_sensor": row.sensor_name
-                
+                "type_sensor": row.sensor_name,
+                "unity": row.type_sensor_unity
             }
             list.append(report)
         else:

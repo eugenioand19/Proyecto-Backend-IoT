@@ -1,4 +1,5 @@
 
+from app.models.role import Role
 from app.models.user import User
 from app.schemas.user_schema import UserSchema, UserSchemaView
 from app.services.role_service import get_role_by_id
@@ -18,7 +19,7 @@ user_schema_view = UserSchemaView()
 def get_users_service(pagelink):
     try:
         
-        query = User.query
+        query = db.session.query(User.created_at, User.email, User.first_name, User.last_name, User.second_last_name, User.last_name, User.user_id,Role.description.label("role"), User.status).join(Role, User.role_id == Role.role_id)
 
         query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order)
         
