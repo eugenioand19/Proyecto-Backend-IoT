@@ -36,7 +36,7 @@ def get_sensors():
         
         # Load allowed types dynamically
         allowed_types = [ type_sensor.name for type_sensor in TypeSensor.query.all()]
-        if any(type_ not in allowed_types for type_ in typesList.split(',')):
+        if any(type_ not in allowed_types for type_ in typesList.split(',')) and typesList:
             return bad_request_message(details="Invalid type in typesList")
         
         page_link = create_page_link(page_size, page, text_search, sort)
