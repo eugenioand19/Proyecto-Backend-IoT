@@ -60,6 +60,19 @@ paths:
             type: string
             enum: [ASC, DESC]
           description: Orden de clasificación
+        - name: statusList
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive]
+          description: Estados separados por coma
+        - name: RoleList
+          in: query
+          schema:
+            type: string
+            enum: [admin,user]
+          description: Roles separados por coma, los roles se obtienes de la ruta /api/role-select
+        
       responses:
         200:
           description: Successful response
@@ -2028,19 +2041,15 @@ components:
         last_name:
           type: string
           example: "Pouros"
-        role_id:
-          type: integer
-          example: 1
+        role:
+          type: String
+          example: Administrador del sistema
         second_last_name:
           type: string
           example: ""
         second_name:
           type: string
           example: ""
-        updated_at:
-          type: string
-          format: date-time
-          example: "2024-11-08T14:10:57.036821"
         user_id:
           type: string
           format: uuid
