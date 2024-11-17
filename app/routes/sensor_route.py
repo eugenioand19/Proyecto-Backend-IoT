@@ -12,6 +12,7 @@ from app.schemas.sensor_schema import SensorQuerySchema, SensorQuerySelectSchema
 from app.utils.error.error_responses import *
 from app.utils.pagination.page_link import create_page_link
 from app.utils.success_responses import ok_message
+from app.models.type_sensor import TypeSensor
 
 sensor_bp = Blueprint('sensor', __name__, url_prefix='/api')
 
@@ -32,6 +33,11 @@ def get_sensors():
         sort = params.get('sort', 'created_at.asc')
         statusList = params.get('statusList', '')
         typesList = params.get('typesList', '')
+        
+        # Load allowed types dynamically
+        allowed_types = [ type_sensor.name for type_sensor in TypeSensor.query.all()]
+        if any(type_ not in allowed_types for type_ in typesList.split(',')):
+            return bad_request_message(details="Invalid type in typesList")
         
         page_link = create_page_link(page_size, page, text_search, sort)
 

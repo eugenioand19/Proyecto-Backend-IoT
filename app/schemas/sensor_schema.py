@@ -29,3 +29,11 @@ class SensorQuerySchema(Schema):
         allowed_values=["PH", "OD", "TEMP", "TURB", "CAUD_EN", "CAUD_SAL"],
         description="Comma-separated list of type sensors"
     )
+
+class TypeSensorSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = TypeSensor
+        load_instance = True
+
+class SensorQuerySelectSchema(Schema):
+    text_search = fields.Str(required=False, description="Search query")
