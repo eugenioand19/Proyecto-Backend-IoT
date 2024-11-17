@@ -8,16 +8,17 @@ from app.services.sensor_service import (
     delete_sensor,
     get_all_type_sensors
 )
-from app.schemas.sensor_schema import SensorQuerySchema, SensorQuerySelectSchema,SensorSchema
+from app.schemas.sensor_schema import SensorQuerySchema, SensorQuerySelectSchema, SensorSchema
 from app.utils.error.error_responses import *
 from app.utils.pagination.page_link import create_page_link
 from app.utils.success_responses import ok_message
+
 sensor_bp = Blueprint('sensor', __name__, url_prefix='/api')
 
 sensor_schema = SensorSchema()
+
 @sensor_bp.route('/sensors', methods=['GET'])
 def get_sensors():
-
     try:
         schema = SensorQuerySchema()
         try:
@@ -25,19 +26,16 @@ def get_sensors():
         except Exception as e:
             return bad_request_message(details=str(e))
         
-        #get se params
         page_size = params['page_size']
         page = params['page']
         text_search = params.get('text_search', '')
-        sort_property = params.get('sort_property', 'created_at')
-        sort_order = params.get('sort_order', 'ASC')
+        sort = params.get('sort', 'created_at.asc')
         statusList = params.get('statusList', '')
         typesList = params.get('typesList', '')
         
-        #create de pagination object
-        page_link = create_page_link(page_size,page,text_search,sort_property,sort_order)
+        page_link = create_page_link(page_size, page, text_search, sort)
 
-        sensors = get_all_sensors(page_link,statusList=statusList,typesList=typesList)
+        sensors = get_all_sensors(page_link, statusList=statusList, typesList=typesList)
 
         return sensors
     except Exception as e:
@@ -68,7 +66,6 @@ def create_sensors():
 @sensor_bp.route('/sensors/<int:id>', methods=['PUT'])
 def update_sensor_route(id):
     try:
-
         try:
             req = sensor_schema.load(request.json, partial=True)
         except Exception as e:
@@ -84,7 +81,6 @@ def update_sensor_route(id):
 @sensor_bp.route('/sensors/<int:id>', methods=['DELETE'])
 def delete_sensor_route(id):
     try:
-        
         return delete_sensor(id)
     except Exception as e:
         error_message = ' '.join(str(e).split()[:5])
@@ -92,7 +88,6 @@ def delete_sensor_route(id):
 
 @sensor_bp.route('/sensors/type_sensors', methods=['GET'])
 def get_all_typesensors():
-
     try:
         return get_all_type_sensors()
     except Exception as e:
@@ -109,10 +104,9 @@ def get_sensor_select(node_id=None):
         except Exception as e:
             return bad_request_message(details=str(e))
         
-        #get se params
         text_search = params.get('text_search', '')
         
-        sensors = get_all_sensor_select(text_search,node_id)
+        sensors = get_all_sensor_select(text_search, node_id)
         return sensors
     except Exception as e:
         error_message = ' '.join(str(e).split()[:5])
