@@ -30,12 +30,14 @@ def get_users():
         text_search = params.get('text_search', '')
         sort_property = params.get('sort_property', 'created_at')
         sort_order = params.get('sort_order', 'ASC')
+        statusList = params.get('statusList', '')
+        roleList = params.get('roleList', '')
 
         #create de pagination object
         page_link = create_page_link(page_size,page,text_search,sort_property,sort_order)
         
         #response ok
-        return get_users_service(page_link)
+        return get_users_service(page_link,statusList=statusList, RoleList=roleList)
     except Exception as e:
         error_message = ' '.join(str(e).split()[:5])
         return server_error_message(details=error_message)

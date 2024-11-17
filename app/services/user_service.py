@@ -16,12 +16,14 @@ user_schema = UserSchema()
 user_schema_many = UserSchemaView(many=True)
 user_schema_view = UserSchemaView()
 
-def get_users_service(pagelink):
+def get_users_service(pagelink,statusList,RoleList):
     try:
         
         query = db.session.query(User.created_at, User.email, User.first_name, User.last_name, User.second_name, User.second_last_name, User.last_name, User.user_id,Role.description.label("role"), User.status).join(Role, User.role_id == Role.role_id)
 
-        query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order)
+        
+        
+        query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order,statusList=statusList, roleList=RoleList)
         
         users_paginated = query.paginate(page=pagelink.page, per_page=pagelink.page_size, error_out=False)
         if not users_paginated.items:
@@ -144,7 +146,7 @@ def check_password(password):
 
     return True, "Password is secure."
 
-def apply_filters_and_pagination(query, text_search=None, sort_order=None):
+def apply_filters_and_pagination(query, text_search=None, sort_order=None,statusList=None,roleList=None):
     
     if text_search:
        
@@ -162,6 +164,17 @@ def apply_filters_and_pagination(query, text_search=None, sort_order=None):
         else:
             query = query.order_by(desc(sort_order.property_name))
     
+    if roleList:
+        query = query.filter(or_(
+            roleList == None,
+            Role.name.in_(roleList)
+        ))
+
+    if statusList:
+        query = query.filter(or_(
+            statusList == None,
+            User.status.in_(statusList)
+        ))
     return query
 
 def validate_user_data(data, user=None):

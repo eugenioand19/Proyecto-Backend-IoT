@@ -39,7 +39,7 @@ def get_all_permissions_select(text_search):
             )
             query = query.filter(search_filter)
         
-        query = query.with_entities(Permission.permission_id, Permission.name).all()
+        query = query.with_entities(Permission.permission_id, Permission.name, Permission.description).all()
         if not query:
             return not_found_message(message="Parece que aun no hay datos")
         data = permission_schema_many.dump(query)

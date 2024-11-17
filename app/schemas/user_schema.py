@@ -1,6 +1,7 @@
 from marshmallow import Schema, fields, validate
 from flask_marshmallow.sqla import SQLAlchemyAutoSchema
 from app.models.user import User
+from app.utils.delimited_list import DelimitedListField
 
 class UserSchema(SQLAlchemyAutoSchema):
     class Meta:
@@ -24,3 +25,12 @@ class UserQuerySchema(Schema):
                                 validate=validate.OneOf(["created_at", "name", "last_name", "email", "role"]))
         sort_order = fields.Str(required=False, description="Sort order", 
                                 validate=validate.OneOf(["ASC", "DESC"]))
+        # Passing the list of allowed values for validation
+        statusList = DelimitedListField(
+            required=False,
+            description="Comma-separated list of status values."
+        )
+        roleList = DelimitedListField(
+            required=False,
+            description="Comma-separated list of roles values."
+        )

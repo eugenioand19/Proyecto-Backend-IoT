@@ -13,9 +13,10 @@ class DelimitedListField(fields.Field):
         items = [item.strip() for item in value.split(",")]
         
         # Apply validation to each item in the list
-        for item in items:
-            if item not in self.allowed_values:
-                raise ValidationError(f"'{item}' is not a valid value for {attr}. Must be one of {self.allowed_values}.")
+        if self.allowed_values:
+            for item in items:
+                if item not in self.allowed_values:
+                    raise ValidationError(f"'{item}' is not a valid value for {attr}. Must be one of {self.allowed_values}.")
                 #raise CustomException("Sorry, no numbers below zero",status_code=404)
         
         return items
