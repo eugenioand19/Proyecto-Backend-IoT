@@ -26,6 +26,6 @@ class SensorQuerySchema(Schema):
         description="Comma-separated list of statuses"
     )
     typesList = DelimitedListField(
-        allowed_values=[type_sensor.name for type_sensor in TypeSensor.query.all()],
+        allowed_values=["PH", "OD", "TEMP", "TURB", "CAUD_EN", "CAUD_SAL"],
         description="Comma-separated list of type sensors"
     )
