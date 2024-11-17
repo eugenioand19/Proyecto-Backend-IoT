@@ -65,13 +65,13 @@ paths:
           schema:
             type: string
             enum: [active, inactive]
-          description: Estados separados por coma
+          description: Estados separados por coma ej. active,inactive . sin [ ]
         - name: RoleList
           in: query
           schema:
             type: string
             enum: [admin,user]
-          description: Roles separados por coma, los roles se obtienes de la ruta /api/role-select
+          description: Roles separados por coma, los roles se obtienes de la ruta /api/role-select ej. admin,user. sin [ ]
         
       responses:
         200:
@@ -2042,7 +2042,7 @@ components:
           type: string
           example: "Pouros"
         role:
-          type: String
+          type: string
           example: Administrador del sistema
         second_last_name:
           type: string
