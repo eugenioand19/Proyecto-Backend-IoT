@@ -19,6 +19,8 @@ tags:
     description: Operaciones relacionadas con los Roles del sistema
   - name: Permissions
     description: Operaciones relacionadas con los Permisos del sistema
+  - name: Alerts
+    description: Alertas de Humedales
 
 
 paths:
@@ -2021,7 +2023,172 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/alerts:
+    get:
+      tags:
+        - Alerts
+      summary: Obtener todas las alarmas
+      parameters:
+        - in: query
+          name: page_size
+          required: true
+          schema:
+            type: integer
+          description: Tamaño de página
+        - in: query
+          name: page
+          required: true
+          schema:
+            type: integer
+          description: Número de página
+        - in: query
+          name: text_search
+          schema:
+            type: string
+          description: Texto de búsqueda(name,description)
+        - in: query
+          name: sort_property
+          schema:
+            type: string
+            enum: [created_at, name, description]
+          description: Propiedad para ordenar
+        - in: query
+          name: sort_order
+          schema:
+            type: string
+            enum: [ASC, DESC]
+          description: Orden de clasificación
+        - name: start_time
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+          description: Fecha inicial en formato Unix
+        - name: end_time
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+          description: Fecha final en formato Unix
+        - name: statusList
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive]
+          description: Estados separados por coma ej. active,atendida . sin [ ]
+        - name: severityList
+          in: query
+          schema:
+            type: string
+            enum: [admin,user]
+          description: Roles separados por coma ej. critica, alerta. sin [ ]
+      responses:
+        '200':
+          description: Lista de alarmas obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ResponseWithAlarmList'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    
 
+  /api/alerts/{id}:
+    get:
+      tags:
+        - Alerts
+      summary: Obtener una alarma
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID de la alarma
+      responses:
+        '200':
+          description: Alarma obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseWithAlertObject'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - Alerts
+      summary: Actualizar una Alerta Existente
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID de la alarma
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Alarm'
+      responses:
+        '200':
+          description: Actualizacion exitosa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseWithMessage'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error de servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
   schemas:
     User:
@@ -2802,5 +2969,61 @@ components:
                       total_pages:
                         type: integer
                         example: 1116
+    Alarm:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "activa"
+        description:
+          type: string
+          example: Peligro sensor 1 nodo 2
 
-            
+    AlarmQuery:
+        type: object
+        properties:
+          alert_date:
+            type: string
+            format: date-time
+            example: "2024-11-08T14:10:57.036821"
+          node:
+            type: string
+            example: "NODO_LATERAL"
+          sensor:
+            type: string
+            example: "LATERAL_HUMEDAD"
+          status:
+            type: string
+            example: "Pouros"
+          description:
+            type: string
+            example: Peligro sensor 1 nodo 2
+          severity:
+            type: string
+            example: ""
+          alert_id:
+            type: integer
+            example: "1"
+    
+    ResponseWithAlarmList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AlarmQuery'
+        errors:
+          $ref: '#/components/schemas/Error'
+        paging:
+          $ref: '#/components/schemas/Paging'
+  
+    ResponseWithAlertObject:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/AlarmQuery'
+        errors:
+          $ref: '#/components/schemas/Error'
+        message:
+          type: string
+          example: "Operacion Realizada Correctamente"
