@@ -150,8 +150,6 @@ def get_reports_wetland(wetland_id = None, node_id= None, sensor_id = None):
         #get se params
         page_size = params['page_size']
         page = params['page']
-        sort_property = params.get('sort_property', 'created_at')
-        sort_order = params.get('sort_order', 'ASC')
         start_time = params.get('start_time', '')
         end_time = params.get('end_time', '')
         sensor_type = params.get('sensor_type', '')
@@ -161,7 +159,7 @@ def get_reports_wetland(wetland_id = None, node_id= None, sensor_id = None):
 
 
         #create de pagination object
-        page_link = create_time_page_link(page_size,page,'',sort_property,sort_order,start_time,end_time)
+        page_link = create_time_page_link(page_size,page, text_search='', sort="created_at.ASC",start_time=start_time,end_time=end_time)
 
         report = wetlands_reports(wetland_id=wetland_id, node_id=node_id, sensor_id=sensor_id,pagelink=page_link,type_sensor=sensor_type)
 
@@ -191,7 +189,7 @@ def get_reports_graph_wetland(wetland_id = None, node_id= None, sensor_id = None
         if wetland_id is None or node_id is None or sensor_id is None:
             return bad_request_message(message="Debe tener todos los filtros seleccionados")
         #create de pagination object
-        page_link = create_time_page_link('','','','','',start_time,end_time)
+        page_link = create_time_page_link(page='',page_size='',sort='', text_search='',start_time=start_time,end_time=end_time)
 
         report = wetland_report_graph(wetland_id=wetland_id, node_id=node_id, sensor_id=sensor_id,pagelink=page_link)
 

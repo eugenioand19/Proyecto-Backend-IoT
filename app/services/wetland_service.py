@@ -224,7 +224,12 @@ def get_wetlands_overview_details(wetland_id=None, node_id=None):
         for wetland in wetlands.values():
             del wetland["nodes_dict"]
 
-        return ok_message(data=list(wetlands.values()))
+        if wetlands:
+            wetland_details = next(iter(wetlands.values()))  # Selecciona el primer humedal
+            return ok_message(data=wetland_details)
+        else:
+            return ok_message(data={})
+        
     except ResourceNotFound as err:
         return not_found_message(details=str(err))
     

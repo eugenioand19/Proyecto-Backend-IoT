@@ -20,10 +20,6 @@ class ReportSchema(Schema):
 class ReportQuerySchema(Schema):
     page_size = fields.Int(required=False, description="Page size")
     page = fields.Int(required=False, description="Page number")
-    sort_property = fields.Str(required=False, description="Sort property", 
-                               validate=validate.OneOf(["register_date","node_name","wetland_name","data_history_value","sensor_name"]))
-    sort_order = fields.Str(required=False, description="Sort order", 
-                            validate=validate.OneOf(["ASC", "DESC"]))
     start_time = fields.Str(required=False, description="Star date")
     end_time = fields.Str(required=False, description="End date")
     sensor_type = fields.Str(required=False, description="Filter with typer sensor")

@@ -33,7 +33,9 @@ def get_sensors():
         sort = params.get('sort', 'created_at.asc')
         statusList = params.get('statusList', '')
         typesList = params.get('typesList', '')
-        
+        name = params.get('name', '')
+        status = params.get('status', '')
+        type_sensor = params.get('type_sensor', '')
         # Load allowed types dynamically
         allowed_types = [ type_sensor.name for type_sensor in TypeSensor.query.all()]
         if any(type_ not in allowed_types for type_ in typesList.split(',')) and typesList:

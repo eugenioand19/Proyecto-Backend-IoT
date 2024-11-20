@@ -48,9 +48,16 @@ def create_page_link(page_size, page, text_search=None, sort=None, operator = No
             raise ThingsboardException(f"Unsupported sort order '{sort_order}'! Only 'ASC' or 'DESC' types are allowed.", 'BAD_REQUEST_PARAMS')
         
         sort = SortOrder(sort_property, sort_order)
-        return PageLink(page_size, page, text_search, sort)
+        
+        if operator:
+            if operator not in [Operator.AND, Operator.OR]:
+                raise ThingsboardException(f"Unsupported operator '{operator}'! Only 'AND' or 'OR' types are allowed.", 'BAD_REQUEST_PARAMS')
+            return PageLink(page_size, page, text_search, sort,operator)
+        else:
+            return PageLink(page_size, page, text_search, sort)
 
-    return PageLink(page_size, page, text_search)
+    
+    return PageLink(page_size, page, text_search,sort)
 
 def create_time_page_link(page_size, page, text_search, sort, start_time, end_time):
     try:
