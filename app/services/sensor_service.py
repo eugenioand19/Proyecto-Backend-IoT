@@ -9,6 +9,7 @@ from db import db
 from app.utils.success_responses import pagination_response,created_ok_message,ok_message
 from app.utils.error.error_responses import bad_request_message, not_found_message,server_error_message
 from marshmallow import ValidationError
+
 sensor_schema = SensorSchema()
 sensor_schema_many = SensorSchema(many=True)
 type_sensor_schema = TypeSensorSchema(many=True)
@@ -16,7 +17,7 @@ type_sensor_schema = TypeSensorSchema(many=True)
 def get_all_sensors(pagelink,statusList,typesList):
     try:
         
-        query = Sensor.query
+        query = db.session.query(Sensor.name.label("sensor_name"), Sensor.created_at,Sensor.purchase_date, Sensor.sensor_id, Sensor.status,TypeSensor.name, TypeSensor.code).join(Sensor, Sensor.type_sensor == TypeSensor.code)
 
         query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order, statusList=statusList, typesList=typesList)
         
@@ -24,7 +25,26 @@ def get_all_sensors(pagelink,statusList,typesList):
 
         if not sensors_paginated.items:
             return not_found_message(message="Parece que aun no hay datos")
-        data = sensor_schema_many.dump(sensors_paginated)
+        #data = sensor_schema_many.dump(sensors_paginated)
+
+        data=[]
+
+        for row in sensors_paginated:
+            
+            obj={
+
+                "created_at": row.created_at,
+                "name": row.sensor_name,
+                "type_sensor": {
+                    "name": row.name,
+                    "code": row.code
+                },
+                "purchase_date": row.purchase_date.strftime("%Y-%m-%d") if row.purchase_date else None,
+                "status" : row.status
+            }
+
+            data.append(obj)
+            
         
         return pagination_response(sensors_paginated.total,sensors_paginated.pages,sensors_paginated.page,sensors_paginated.per_page,data=data)
     except Exception as e:

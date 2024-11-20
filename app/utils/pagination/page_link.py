@@ -4,10 +4,14 @@ class ThingsboardException(Exception):
     def __init__(self, message, error_code):
         super().__init__(message)
         self.error_code = error_code
-
+class Operator:
+    OR = "OR"
+    AND = "AND"
 class SortOrder:
     ASC = "ASC"
     DESC = "DESC"
+
+
 
     def __init__(self, property_name, direction):
         if direction not in [SortOrder.ASC, SortOrder.DESC]:
@@ -16,11 +20,12 @@ class SortOrder:
         self.direction = direction
 
 class PageLink:
-    def __init__(self, page_size, page, text_search=None, sort_order=None):
+    def __init__(self, page_size, page, text_search=None, sort_order=None, operator=None):
         self.page_size = page_size
         self.page = page
         self.text_search = text_search
         self.sort_order = sort_order
+        self.operator = operator
 
 class TimePageLink:
     def __init__(self, page_link, start_time, end_time):
@@ -28,7 +33,7 @@ class TimePageLink:
         self.start_time = start_time
         self.end_time = end_time
 
-def create_page_link(page_size, page, text_search=None, sort=None):
+def create_page_link(page_size, page, text_search=None, sort=None, operator = None):
     if sort:
         sort_parts = sort.split('.')
         if len(sort_parts) != 2:
@@ -41,7 +46,7 @@ def create_page_link(page_size, page, text_search=None, sort=None):
         sort_order = sort_order.upper()
         if sort_order not in [SortOrder.ASC, SortOrder.DESC]:
             raise ThingsboardException(f"Unsupported sort order '{sort_order}'! Only 'ASC' or 'DESC' types are allowed.", 'BAD_REQUEST_PARAMS')
-
+        
         sort = SortOrder(sort_property, sort_order)
         return PageLink(page_size, page, text_search, sort)
 
