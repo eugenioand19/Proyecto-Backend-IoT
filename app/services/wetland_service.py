@@ -157,23 +157,12 @@ def get_wetlands_overview():
             
 
         if len(wetlands[wetland_id]["sensors"]) < 3:
-            if row.sensor_code == "OD":
-                max_= 0.5
-            elif row.sensor_code =="PH":
-                max_=8
-            elif row.sensor_code =="TURB":
-                max_ = 10
-            elif row.sensor_code =="TEMP":
-                max_ = 50
-            elif row.sensor_code =="HUM":
-                max_ = 100
-            else:
-                max_= 100
+            
             wetlands[wetland_id]["sensors"][row.sensor_code] = {
                 "value": row.data_history_value,
                 "name": row.sensor_name,
                 "unity": row.type_sensor_unity,
-                "max": max_
+                "max": row.type_sensor_max
             }
 
     return ok_message(data=list(wetlands.values()))
@@ -269,7 +258,8 @@ def get_wetlands_details(wetland_id=None, node_id=None,sensor_id=None,is_latest=
             DataHistory.register_date.label("register_date"),
             TypeSensor.code.label("sensor_code"),
             TypeSensor.name.label("sensor_name"),
-            TypeSensor.unity.label("type_sensor_unity")
+            TypeSensor.unity.label("type_sensor_unity"),
+            TypeSensor.max_.label("type_sensor_max")
         )
         .join(Node, Node.wetland_id == Wetland.wetland_id)
         .join(SensorNode, (Node.node_id == SensorNode.node_id) & (SensorNode.status == 'ACTIVE'))

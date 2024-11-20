@@ -6,4 +6,4 @@ class TypeSensor(db.Model):
     code = db.Column(db.String(20))
     name = db.Column(db.String(50))
     unity = db.Column(db.String(50))
-    
+    max_ = db.Column(db.Double)
