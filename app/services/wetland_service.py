@@ -157,10 +157,23 @@ def get_wetlands_overview():
             
 
         if len(wetlands[wetland_id]["sensors"]) < 3:
+            if row.sensor_code == "OD":
+                max_= 0.5
+            elif row.sensor_code =="PH":
+                max_=8
+            elif row.sensor_code =="TURB":
+                max_ = 10
+            elif row.sensor_code =="TEMP":
+                max_ = 50
+            elif row.sensor_code =="HUM":
+                max_ = 100
+            else:
+                max_= 100
             wetlands[wetland_id]["sensors"][row.sensor_code] = {
                 "value": row.data_history_value,
                 "name": row.sensor_name,
-                "unity": row.type_sensor_unity
+                "unity": row.type_sensor_unity,
+                "max": max_
             }
 
     return ok_message(data=list(wetlands.values()))
