@@ -1,4 +1,4 @@
-from sqlalchemy import asc, desc, or_
+from sqlalchemy import func, or_, and_, asc, desc
 from app.models.sensor import Sensor
 from app.models.type_sensor import TypeSensor
 from app.models.sensor_node import SensorNode
@@ -14,12 +14,12 @@ sensor_schema = SensorSchema()
 sensor_schema_many = SensorSchema(many=True)
 type_sensor_schema = TypeSensorSchema(many=True)
 
-def get_all_sensors(pagelink,statusList,typesList):
+def get_all_sensors(pagelink,params=None):
     try:
         
-        query = db.session.query(Sensor.name.label("sensor_name"), Sensor.created_at,Sensor.purchase_date, Sensor.sensor_id, Sensor.status,TypeSensor.name, TypeSensor.code).join(Sensor, Sensor.type_sensor == TypeSensor.code)
+        query = db.session.query(Sensor.name.label("sensor_name"), Sensor.created_at,Sensor.purchase_date, Sensor.sensor_id, Sensor.status,TypeSensor.name, TypeSensor.code, Sensor.latitude, Sensor.longitude).join(Sensor, Sensor.type_sensor == TypeSensor.code)
 
-        query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order, statusList=statusList, typesList=typesList)
+        query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order, params=params)
         
         sensors_paginated = query.paginate(page=pagelink.page, per_page=pagelink.page_size, error_out=False)
 
@@ -40,7 +40,9 @@ def get_all_sensors(pagelink,statusList,typesList):
                     "code": row.code
                 },
                 "purchase_date": row.purchase_date.strftime("%Y-%m-%d") if row.purchase_date else None,
-                "status" : row.status
+                "status" : row.status,
+                "latitude": row.latitude,
+                "longitude": row.longitude
             }
 
             data.append(obj)
@@ -131,22 +133,99 @@ def delete_sensor(sensor_id):
     except ResourceNotFound as e:
         return not_found_message(details=str(e),entity="Sensor")
 
-def apply_filters_and_pagination(query, text_search=None, sort_order=None, statusList=None,typesList=None):
+def apply_filters_and_pagination(query, text_search=None, sort_order=None, params=None, entity=Sensor):
     
+    """
+    Aplica filtros, combina condiciones dinámicamente usando AND/OR, y gestiona la paginación.
     
-    if typesList:
-        query = query.filter(or_(
-            typesList == None,
-            Sensor.type_sensor.in_(typesList)
-        ))
+    :param query: Consulta base de SQLAlchemy.
+    :param params: Diccionario de parámetros de consulta.
+    :param entity: Clase de la entidad SQLAlchemy.
+    :return: Consulta con filtros, combinación AND/OR y paginación aplicados.
+    """
+    # Mapeo de operadores a funciones SQLAlchemy
+    operator_map = {
+        'ilike': lambda col, val: col.ilike(f"%{val}%"),
+        'notContains': lambda col, val: ~col.ilike(f"%{val}%"),
+        'eq': lambda col, val: col == val,
+        'notEq': lambda col, val: col != val,
+        'startsWith': lambda col, val: col.ilike(f"{val}%"),
+        'endsWith': lambda col, val: col.ilike(f"%{val}"),
+        'isNull': lambda col, _: col.is_(None),
+        'isNotNull': lambda col, _: col.is_not(None),
+        'in': lambda col, vals: col.in_(vals),
+        'notIn': lambda col, vals: ~col.in_(vals)
+    }
 
-    if statusList:
-        query = query.filter(or_(
-            statusList == None,
-            Sensor.status.in_(statusList)
-        ))
-    
 
+    # Obtener el operador lógico global (AND por defecto)
+    logical_operator = params.get('operator', 'and').lower()
+    combine_conditions = and_ if logical_operator == 'and' else or_
+
+    # Lista para acumular filtros
+    filters = []
+
+    # Aplicar filtros dinámicamente
+
+    # Obtener operador lógico global ('and' o 'or')
+    logical_operator = params.get('operator', 'and').lower()
+    combine_conditions = and_ if logical_operator == 'and' else or_
+
+    # Obtener columnas válidas del modelo
+    valid_columns = {col.name: col for col in Sensor.__table__.columns}
+    
+    for field, raw_value in params.items():
+            if field in ['page', 'page_size', 'sort']:  # Ignorar parámetros de control
+                continue
+            if field in ['from_', 'to_']:
+            # Manejar rangos de fechas o valores
+                
+                column = getattr(entity, 'created_at', None)  # Truncar la fecha
+                
+                if column:
+                    print(field)
+                    
+                    if field == 'from_':
+                        print(field)
+                        
+                        filters.append(func.date(column) >= raw_value)
+                    elif field == 'to_':
+                        print(field)
+                        filters.append(func.date(column) <= raw_value)
+                        
+            if field in valid_columns:
+                column = valid_columns[field]
+                
+            
+            # Procesar el valor y operador
+            if field not in ('to_','from_'):
+                if '~' in raw_value:
+                    
+                    values_operator, operator_type = raw_value.rsplit('~', 1)
+
+                    # Verificar si los valores tienen prefijo 'in-' y procesarlos
+                    if values_operator.startswith('in-'):
+                        multi_values = values_operator[3:].split('.')  # Quitar 'in-' y dividir
+                    else:
+                        multi_values = values_operator.split('.')  # Dividir por defecto
+                    
+
+                    if operator_type in operator_map:
+                        
+                        # Múltiples valores manejados por 'in' o 'notIn'
+                        if operator_type in ['eq', 'notEq'] and len(multi_values) > 1:
+                            operator_type = 'in' if operator_type == 'eq' else 'notIn'
+                            print(operator_type,column,multi_values)
+                            filters.append(operator_map[operator_type](column, multi_values))
+                            
+                        # Valores individuales o con operadores directos
+                        else:
+                            
+                            filters.append(operator_map[operator_type](column, multi_values[0]))
+        # Aplicar filtros combinados
+    
+    if filters:
+        query = query.filter(combine_conditions(*filters))
 
     if text_search:
        
@@ -155,7 +234,6 @@ def apply_filters_and_pagination(query, text_search=None, sort_order=None, statu
         )
         query = query.filter(search_filter)
 
-    
     if sort_order.property_name:
         if sort_order.direction == 'ASC':
             query = query.order_by(asc(sort_order.property_name))

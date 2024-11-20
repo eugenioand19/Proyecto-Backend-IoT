@@ -18,17 +18,12 @@ class SensorQuerySchema(Schema):
     text_search = fields.Str(required=False, description="Search query")
     sort = fields.Str(required=False, description="Sort in the format 'property.order'", validate=validate.Regexp(r'^[\w-]+\.(asc|desc)$', flags=re.IGNORECASE))
     
-    valid_statuses = ["ACTIVE","INACTIVE"]
-
-    # Passing the list of allowed values for validation
-    statusList = DelimitedListField(
-        allowed_values=valid_statuses,
-        description="Comma-separated list of statuses"
-    )
-    typesList = DelimitedListField(
-        allowed_values=["PH", "OD", "TEMP", "TURB", "CAUD_EN", "CAUD_SAL"],
-        description="Comma-separated list of type sensors"
-    )
+    from_ = fields.Date()
+    to_ = fields.Date()
+    status = fields.Str(required=False, description="Status")
+    name = fields.Str(required=False, description="Name")
+    type_sensor = fields.Str(required=False, description="Type Sensor")
+    operator = fields.Str(required=False, description="Operator")
 
 class TypeSensorSchema(SQLAlchemyAutoSchema):
     class Meta:

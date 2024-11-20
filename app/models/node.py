@@ -10,6 +10,8 @@ class Node(db.Model):
     status = db.Column(db.String(50))
     last_connection = db.Column(db.DateTime)
     node_type = db.Column(db.String(50))
+    latitude = db.Column(db.String(100), nullable=False)
+    longitude = db.Column(db.String(100), nullable=False)
     str_MAC = db.Column(db.String(500))
     installation_date = db.Column(db.DateTime)
     wetland_id = db.Column(db.Integer, nullable=False)

@@ -37,13 +37,14 @@ def get_sensors():
         status = params.get('status', '')
         type_sensor = params.get('type_sensor', '')
         # Load allowed types dynamically
-        allowed_types = [ type_sensor.name for type_sensor in TypeSensor.query.all()]
+        """   allowed_types = [ type_sensor.name for type_sensor in TypeSensor.query.all()]
         if any(type_ not in allowed_types for type_ in typesList.split(',')) and typesList:
-            return bad_request_message(details="Invalid type in typesList")
+            return bad_request_message(details="Invalid type in typesList") """
         
         page_link = create_page_link(page_size, page, text_search, sort)
 
-        sensors = get_all_sensors(page_link, statusList=statusList, typesList=typesList)
+        
+        sensors = get_all_sensors(page_link, params=params)
 
         return sensors
     except Exception as e:
