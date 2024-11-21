@@ -204,6 +204,7 @@ def get_wetlands_overview_details(wetland_id=None, node_id=None):
                 node = {
                     "node_id": row.node_id,
                     "name": row.node_name,
+                    "status": row.node_status,
                     "latitude": row.node_latitude,
                     "longitude": row.node_longitude,
                     "sensors": []  # Inicializa la lista de sensores vacía
@@ -267,6 +268,7 @@ def get_wetlands_details(wetland_id=None, node_id=None,sensor_id=None,is_latest=
             DataHistory.updated_at.label("last_updated"),
             DataHistory.register_date.label("register_date"),
             TypeSensor.code.label("sensor_code"),
+            Node.status.label("node_status"),
             TypeSensor.name.label("sensor_name"),
             TypeSensor.unity.label("type_sensor_unity"),
             TypeSensor.max_.label("type_sensor_max"),
