@@ -113,8 +113,9 @@ def update_sensor(sensor_id, data):
         valid_codes = {type_sensor.code for type_sensor in TypeSensor.query.all()}
     
         # Validar el campo 'type_sensor'
-        if data.get('type_sensor') not in valid_codes:
-            return not_found_message(entity='Tipos de Sensores')
+        if data.get('type_sensor'):
+            if data.get('type_sensor') not in valid_codes:
+                return not_found_message(entity='Tipos de Sensores')
         sensor = sensor_schema.load(data, instance=sensor, partial=True)
         db.session.commit()
         return ok_message()
