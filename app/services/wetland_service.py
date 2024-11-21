@@ -204,6 +204,8 @@ def get_wetlands_overview_details(wetland_id=None, node_id=None):
                 node = {
                     "node_id": row.node_id,
                     "name": row.node_name,
+                    "latitude": row.node_latitude,
+                    "longitude": row.node_longitude,
                     "sensors": []  # Inicializa la lista de sensores vacía
                 }
                 # Añade el nodo a la lista de nodos y al diccionario auxiliar
@@ -217,7 +219,10 @@ def get_wetlands_overview_details(wetland_id=None, node_id=None):
                 "sensor_code": row.sensor_code,
                 "value": row.data_history_value,
                 "name": row.sensor_name,
-                "unity": row.type_sensor_unity
+                "unity": row.type_sensor_unity,
+                "max": row.type_sensor_max,
+                "latitude": row.sensor_latitude,
+                "longitude": row.sensor_longitude
             })
 
         # Eliminamos el diccionario auxiliar antes de devolver la respuesta
@@ -264,7 +269,11 @@ def get_wetlands_details(wetland_id=None, node_id=None,sensor_id=None,is_latest=
             TypeSensor.code.label("sensor_code"),
             TypeSensor.name.label("sensor_name"),
             TypeSensor.unity.label("type_sensor_unity"),
-            TypeSensor.max_.label("type_sensor_max")
+            TypeSensor.max_.label("type_sensor_max"),
+            Sensor.latitude.label("sensor_latitude"),
+            Sensor.longitude.label("sensor_longitude"),
+            Node.latitude.label("node_latitude"),
+            Node.longitude.label("node_longitude"),
         )
         .join(Node, Node.wetland_id == Wetland.wetland_id)
         .join(SensorNode, (Node.node_id == SensorNode.node_id) & (SensorNode.status == 'ACTIVE'))

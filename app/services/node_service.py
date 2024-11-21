@@ -17,7 +17,7 @@ def get_all_nodes(pagelink,statusList,typesList):
         
         query = Node.query
 
-        query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order, statusList=statusList, typesList=typesList)
+        query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort, statusList=statusList, typesList=typesList)
         
         nodes_paginated = query.paginate(page=pagelink.page, per_page=pagelink.page_size, error_out=False)
 
