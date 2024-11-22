@@ -13,7 +13,7 @@ from app.services.wetland_service import (
     wetlands_reports,
     wetlands_reports_endpoint
 )
-from app.schemas.wetland_schema import WetlandQuerySchema, WetlandQuerySelectSchema,WetlandSchema
+from app.schemas.wetland_schema import WetlandQuerySchema, WetlandQuerySelectSchema,WetlandSchema, WetlandsUpdateSchema
 from app.utils.error.error_handlers import ResourceNotFound
 from app.utils.error.error_responses import *
 from app.utils.pagination.page_link import create_page_link, create_time_page_link
@@ -21,6 +21,7 @@ from app.utils.success_responses import ok_message
 wetland_bp = Blueprint('wetland', __name__, url_prefix='/api')
 
 wetland_schema = WetlandSchema()
+wetland_schema_upt = WetlandsUpdateSchema()
 @wetland_bp.route('/wetlands', methods=['GET'])
 def get_wetlands():
     try:
@@ -34,15 +35,13 @@ def get_wetlands():
         page_size = params['page_size']
         page = params['page']
         text_search = params.get('text_search', '')
-        sort_property = params.get('sort_property', 'created_at')
-        sort_order = params.get('sort_order', 'ASC')
-        statusList = params.get('statusList', '')
+        sort = params.get('sort', 'created_at.asc')
 
         
         #create de pagination object
-        page_link = create_page_link(page_size,page,text_search,sort_property,sort_order)
+        page_link = create_page_link(page_size, page, text_search, sort)
 
-        wetlands = get_all_wetlands(page_link,statusList=statusList)
+        wetlands = get_all_wetlands(page_link, params=params)
         return wetlands
     except Exception as e:
         error_message = ' '.join(str(e).split()[:5])
@@ -90,16 +89,16 @@ def create_wetlands():
         error_message = ' '.join(str(e).split()[:5])
         return server_error_message(details=error_message)
 
-@wetland_bp.route('/wetlands/<int:id>', methods=['PUT'])
-def update_wetland_route(id):
+@wetland_bp.route('/wetlands', methods=['PUT'])
+def update_wetland_route():
     try:
 
         try:
-            req = wetland_schema.load(request.json, partial=True)
+            req = wetland_schema_upt.load(request.json, partial=True)
         except Exception as e:
             return bad_request_message(details=str(e))
         
-        response = update_wetland(id, request.json)
+        response = update_wetland(request.json)
         
         return response
     except Exception as e:
@@ -172,6 +171,9 @@ def get_reports_wetland(wetland_id = None, node_id= None, sensor_id = None):
         error_message = ' '.join(str(e).split()[:5])
         return server_error_message(details=error_message)
 
+@wetland_bp.route('/wetland-report-graph', methods=['GET'])
+@wetland_bp.route('/wetland-report-graph/<int:wetland_id>', methods=['GET'])
+@wetland_bp.route('/wetland-report-graph/<int:wetland_id>/<int:node_id>', methods=['GET'])
 @wetland_bp.route('/wetland-report-graph/<int:wetland_id>/<int:node_id>/<int:sensor_id>', methods=['GET'])
 def get_reports_graph_wetland(wetland_id = None, node_id= None, sensor_id = None):
     try:
@@ -186,11 +188,6 @@ def get_reports_graph_wetland(wetland_id = None, node_id= None, sensor_id = None
         end_time = params.get('end_time', '')
 
 
-        """ if start_time and not end_time or end_time and not start_time:
-            return bad_request_message(message="Deben estar ambas fechas diligenciadas")
-
-        if wetland_id is None or node_id is None or sensor_id is None:
-            return bad_request_message(message="Debe tener todos los filtros seleccionados") """
         #create de pagination object
         page_link = create_time_page_link(page='',page_size='',sort='', text_search='',start_time=start_time,end_time=end_time)
 

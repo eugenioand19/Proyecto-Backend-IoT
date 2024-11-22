@@ -8,6 +8,7 @@ import re
 class SensorSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Sensor
+        load_instance = True
         exclude = ('created_at','updated_at',)
     status = fields.Str(required=True, validate=validate.OneOf(["ACTIVE","INACTIVE"]))
     type_sensor = fields.Str(required=True)
@@ -17,9 +18,9 @@ class SensorQuerySchema(Schema):
     page = fields.Int(required=True, description="Page number", validate=validate.Range(min=1))
     text_search = fields.Str(required=False, description="Search query")
     sort = fields.Str(required=False, description="Sort in the format 'property.order'", validate=validate.Regexp(r'^[\w-]+\.(asc|desc)$', flags=re.IGNORECASE))
-    
-    from_ = fields.Date()
-    to_ = fields.Date()
+    from_ = fields.Date(data_key="from")
+    to = fields.Date()
+
     status = fields.Str(required=False, description="Status")
     name = fields.Str(required=False, description="Name")
     type_sensor = fields.Str(required=False, description="Type Sensor")

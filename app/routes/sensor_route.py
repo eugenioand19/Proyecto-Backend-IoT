@@ -44,7 +44,6 @@ def get_sensors():
         
         page_link = create_page_link(page_size, page, text_search, sort)
 
-        
         sensors = get_all_sensors(page_link, params=params)
 
         return sensors

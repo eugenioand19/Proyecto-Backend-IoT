@@ -1,33 +1,34 @@
+import re
 from marshmallow import Schema, ValidationError, fields, validate
 from flask_marshmallow.sqla import SQLAlchemyAutoSchema
 from app.models.wetland import Wetland
 from app.utils.delimited_list import DelimitedListField
 
 
-valid_statuses = ["CRITIC","GOOD","NORMAL"]
+valid_statuses = ["good","warning","critical"]
 class WetlandSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Wetland
-        load_instance = True
+        exclude = ('created_at','updated_at',)
     status = fields.Str(required=True, validate=validate.OneOf(valid_statuses))
 
 class WetlandQuerySchema(Schema):
     page_size = fields.Int(required=True, description="Page size", validate=validate.Range(min=1))
     page = fields.Int(required=True, description="Page number", validate=validate.Range(min=1))
     text_search = fields.Str(required=False, description="Search query")
-    sort_property = fields.Str(required=False, description="Sort property", 
-                               validate=validate.OneOf(["created_at", "status", "name", "location"]))
-    sort_order = fields.Str(required=False, description="Sort order", 
-                            validate=validate.OneOf(["ASC", "DESC"]))
-
+    sort = fields.Str(required=False, description="Sort in the format 'property.order'", validate=validate.Regexp(r'^[\w-]+\.(asc|desc)$', flags=re.IGNORECASE))
+    from_ = fields.Date(data_key="from")
+    to = fields.Date()
     
-
-    # Passing the list of allowed values for validation
-    statusList = DelimitedListField(
-        allowed_values=valid_statuses,
-        required=False,
-        description="Comma-separated list of status values."
-    )
+    status = fields.Str(required=False, description="Status")
+    name = fields.Str(required=False, description="Name")
+    location = fields.Str(required=False, description="Location")
+    latitude = fields.Str(required=False, description="latitude")
+    longitude = fields.Str(required=False, description="longitude")
+    
 
 class WetlandQuerySelectSchema(Schema):
     text_search = fields.Str(required=False, description="Search query")
+
+class WetlandsUpdateSchema(Schema):
+    sensors = fields.List(fields.Nested(WetlandSchema), required=True)

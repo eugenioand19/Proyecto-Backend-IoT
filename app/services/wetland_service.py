@@ -1,5 +1,5 @@
 
-from datetime import datetime
+from datetime import datetime,timedelta
 import time
 from flask import jsonify
 from sqlalchemy import and_, asc, desc, func, or_,join,select
@@ -12,6 +12,7 @@ from app.models.wetland import Wetland
 from app.schemas.data_history_schema import DataHistorySchema
 from app.schemas.wetland_schema import WetlandSchema
 from app.utils.error.error_handlers import ResourceNotFound
+from app.utils.pagination.filters import apply_filters_and_pagination
 from app.utils.success_responses import pagination_response,created_ok_message,ok_message
 from app.utils.error.error_responses import bad_request_message, not_found_message,server_error_message
 from db import db
@@ -24,6 +25,7 @@ from reportlab.lib.pagesizes import letter, landscape
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle,Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
+from pytz import timezone,utc
 
 
 
@@ -31,12 +33,12 @@ wetland_schema = WetlandSchema()
 wetland_schema_many = WetlandSchema(many=True)
 
 
-def get_all_wetlands(pagelink,statusList):
+def get_all_wetlands(pagelink,params=None):
     try:
         
         query = Wetland.query
-
-        query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order, statusList=statusList)
+        print(params)
+        query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order, params=params, entity=Wetland)
         
         wetlands_paginated = query.paginate(page=pagelink.page, per_page=pagelink.page_size, error_out=False)
         if not wetlands_paginated.items:
@@ -84,20 +86,34 @@ def create_wetland(data):
         db.session.rollback()
         return server_error_message(details=str(err))
 
-def update_wetland(wetland_id, data):
+def update_wetland(data):
     try:
 
-        wetland = Wetland.query.get(wetland_id)
+        updated_wetlands = []
+        # Verificar si se envió la lista de humedales
+        if not isinstance(data.get("wetlands"), list):
+            return bad_request_message(details="El formato de los datos es incorrecto. Se esperaba una lista de Humedales.")
+        for wetland_data in data["wetlands"]:
+            wetland_id = wetland_data.get("wetland_id")
+            if not wetland_id:
+                return bad_request_message(details="Falta el campo 'wetland_id' en uno de los wetlandes.")
 
-        if not wetland:
-            raise ResourceNotFound("Humedal no encontrado")
-        
-        wetland = wetland_schema.load(data, instance=wetland, partial=True)
+            # Obtener el wetland de la base de datos
+            wetland = Wetland.query.get(wetland_id)
+            if not wetland:
+                return not_found_message(entity="Wetland", message=f"Wetland con ID {wetland_id} no encontrado.")
+
+            # Actualizar el wetland
+            
+            wetland = wetland_schema.load(wetland_data, instance=wetland, partial=True)
+            updated_wetlands.append(wetland)
+
+        # Confirmar los cambios en la base de datos
         db.session.commit()
-        return ok_message()
-    except ResourceNotFound as e:
-        db.session.rollback()
-        return not_found_message(details=e,entity="Humedal")
+        
+        return ok_message(message=f"{len(updated_wetlands)} humedales actualizados exitosamente.")
+    except ResourceNotFound as err:
+        return not_found_message(entity="Wetland", details=str(err),)
 
 
 def delete_wetland(wetland_id):
@@ -112,37 +128,7 @@ def delete_wetland(wetland_id):
     except ResourceNotFound as e:
         return not_found_message(details=str(e),entity="Humedal")
 
-def apply_filters_and_pagination(query, text_search=None, sort_order=None, statusList=None,starTime=None,endTime=None):
-    
-    
-    if statusList:
-        query = query.filter(or_(
-            statusList == None,
-            Wetland.status.in_(statusList)
-        ))
 
-    if text_search:
-       
-        search_filter = or_(
-            Wetland.name.ilike(f'%{text_search}%'),
-            Wetland.location.ilike(f'%{text_search}%')
-        )
-        query = query.filter(search_filter)
-
-    if starTime and endTime:
-        
-        start_time_dt = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(float(starTime)/1000))
-        end_time_dt = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(float(endTime)/1000))
-        query = query.filter(DataHistory.created_at.between(start_time_dt, end_time_dt))
-
-    if sort_order:
-        if sort_order.property_name:
-            if sort_order.direction == 'ASC':
-                query = query.order_by(asc(sort_order.property_name))
-            else:
-                query = query.order_by(desc(sort_order.property_name))
-
-    return query
 
 def get_wetlands_overview():
     
@@ -224,6 +210,7 @@ def get_wetlands_overview_details(wetland_id=None, node_id=None):
 
             # Añade el sensor a la lista de sensores del nodo
             node["sensors"].append({
+                "sensor_id": row.sensor_id,
                 "sensor_code": row.sensor_code,
                 "value": row.data_history_value,
                 "name": row.sensor_name,
@@ -315,19 +302,16 @@ def apply_filters_reports(query,  sort_order=None,starTime=None,endTime=None, ty
     if starTime and endTime:
         
 
-        start_time_dt = datetime.utcfromtimestamp(float(starTime) / 1000)
-        start_time_dt = start_time_dt.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-    
-        end_time_dt = datetime.utcfromtimestamp(float(endTime) / 1000)
-        end_time_dt = end_time_dt.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-        
 
-        #start_time_dt = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(float(starTime)/1000))
-        #end_time_dt = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(float(endTime)/1000))
-        #print(start_time_dt)
-        #print(end_time_dt)
+        start_time_dt = datetime.utcfromtimestamp(float(starTime) / 1000.0).replace(tzinfo=utc)
+        end_time_dt = datetime.utcfromtimestamp(float(endTime) / 1000.0).replace(tzinfo=utc)
+        bogota_tz = timezone('America/Bogota')
+        # Convertir a la zona horaria de Bogotá 
+        start_time_bogota = start_time_dt.astimezone(bogota_tz) 
+        end_time_bogota = end_time_dt.astimezone(bogota_tz)
+
         
-        query = query.filter(DataHistory.register_date.between(start_time_dt, end_time_dt))
+        query = query.filter(DataHistory.register_date.between(start_time_bogota, end_time_bogota))
 
     if sort_order:
         if sort_order.property_name:
@@ -389,7 +373,12 @@ def wetlands_reports(wetland_id=None, node_id=None,sensor_id=None, pagelink=None
         return pagination_response(report_paginated.total,report_paginated.pages,report_paginated.page,report_paginated.per_page,data=list)
     except ResourceNotFound as rnf:
         return not_found_message(entity="Humedal, Nodo o sensor")
+
+def current_time_in_bogota(): 
+    bogota_tz = timezone('America/Bogota') 
     
+    return datetime.now(bogota_tz)
+
 def wetland_report_graph(wetland_id=None, node_id=None,sensor_id=None, pagelink=None, type_sensor = None):
     try:
         if wetland_id:
@@ -405,11 +394,26 @@ def wetland_report_graph(wetland_id=None, node_id=None,sensor_id=None, pagelink=
             if not sensor:
                 return not_found_message(entity="Sensor")
 
-        
-        
+        if not pagelink.start_time or not pagelink.end_time:
+            now = current_time_in_bogota() 
+            if pagelink.start_time and not pagelink.end_time:
+                start_time = pagelink.start_time
+                end_time = int(now.timestamp() * 1000)
+            else:
+                
+                # Última hora de la fecha actual 
+                last_hour = now - timedelta(hours=1) 
+                start_time = int(last_hour.timestamp() * 1000) 
+                end_time = int(now.timestamp() * 1000)
+            
+
+        else:
+            start_time = pagelink.start_time
+            end_time=pagelink.end_time
         query = get_wetlands_details(wetland_id=wetland_id, node_id=node_id, sensor_id=sensor_id, is_latest=False)
         
-        query = apply_filters_reports(query=query, starTime=pagelink.start_time, endTime=pagelink.end_time,type_sensor=type_sensor)
+        query = apply_filters_reports(query=query, starTime=start_time, endTime=end_time,type_sensor=type_sensor)
+        
         
         list = []
 

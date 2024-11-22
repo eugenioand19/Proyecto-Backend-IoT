@@ -26,6 +26,6 @@ class ReportQuerySchema(Schema):
     format = fields.Str(required=False, description="Formato")
 
 class ReportGraphQuerySchema(Schema):
-    start_time = fields.Str(required=True, description="Star date")
-    end_time = fields.Str(required=True, description="End date")
+    start_time = fields.Str(required=False, description="Star date")
+    end_time = fields.Str(required=False, description="End date")
 
