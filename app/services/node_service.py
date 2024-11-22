@@ -2,9 +2,11 @@ from sqlalchemy import asc, desc, or_
 from app.models.node import Node
 from app.models.sensor import Sensor
 from app.models.sensor_node import SensorNode
+from app.models.wetland import Wetland
 from app.schemas.node_schema import NodeSchema
 from app.services.wetland_service import get_wetland_by_id
 from app.utils.error.error_handlers import ResourceNotFound, ValidationErrorExc
+from app.utils.pagination.filters import apply_filters_and_pagination
 from db import db
 from app.utils.success_responses import pagination_response,created_ok_message,ok_message
 from app.utils.error.error_responses import bad_request_message, not_found_message,server_error_message
@@ -12,18 +14,38 @@ from marshmallow import ValidationError
 node_schema = NodeSchema()
 node_schema_many = NodeSchema(many=True)
 
-def get_all_nodes(pagelink,statusList,typesList):
+def get_all_nodes(pagelink,params=None):
     try:
         
-        query = Node.query
+        query = db.session.query(Node.node_id,Node.name.label("node_name"), Node.created_at,Node.location.label("node_location"),Node.status.label("node_status"),Node.str_MAC, Node.installation_date, Node.latitude, Node.longitude, Wetland.name.label("wetland_name"), Wetland.wetland_id).join(Wetland, Wetland.wetland_id == Node.wetland_id )
 
-        query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort, statusList=statusList, typesList=typesList)
+        query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order, params=params, entity=Node)
         
         nodes_paginated = query.paginate(page=pagelink.page, per_page=pagelink.page_size, error_out=False)
 
         if not nodes_paginated.items:
             return not_found_message(message="Parece que aun no hay datos")
-        data = node_schema_many.dump(nodes_paginated)
+        
+        data=[]
+
+        for row in nodes_paginated:
+            
+            obj={
+                "node_id": row.node_id,
+                "created_at": row.created_at,
+                "name": row.node_name,
+                "wetland": {
+                    "name": row.wetland_name,
+                    "wetland_id": row.wetland_id
+                },
+                "installation_date": row.installation_date.strftime("%Y-%m-%d") if row.installation_date else None,
+                "status" : row.node_status,
+                "latitude": row.latitude,
+                "longitude": row.longitude,
+                "str_mac": row.str_MAC
+            }
+
+            data.append(obj)
         
         return pagination_response(nodes_paginated.total,nodes_paginated.pages,nodes_paginated.page,nodes_paginated.per_page,data=data)
     except Exception as e:
@@ -77,67 +99,68 @@ def create_node(data):
         db.session.rollback()
         return not_found_message(entity='Humedal',details=str(err))
 
-def update_node(node_id, data):
+def update_node(data):
     try:
-        if data.get("wetland_id"):
-            if not  get_wetland_by_id(data.get("wetland_id")):
-                raise ResourceNotFound("Humedal no encontrado")
         
-        node = Node.query.get(node_id)
-        if not node:
-            raise ResourceNotFound("Node not found")
-        node = node_schema.load(data, instance=node, partial=True)
+        updated_nodes = []
+        # Verificar si se envió la lista de nodos
+        if not isinstance(data.get("nodes"), list):
+            return bad_request_message(details="El formato de los datos es incorrecto. Se esperaba una lista de Nodos.")
+        for node_data in data["nodes"]:
+            node_id = node_data.get("node_id")
+            if not node_id:
+                return bad_request_message(details="Falta el campo 'node_id' en uno de los nodos.")
+
+            # Obtener el node de la base de datos
+            node = Node.query.get(node_id)
+            if not node:
+                return not_found_message(entity="Node", message=f"Nodo con ID {node_id} no encontrado.")
+
+            # Actualizar el node
+            
+            node = node_schema.load(node_data, instance=node, partial=True)
+            
+            
+            updated_nodes.append(node)
+
+        # Confirmar los cambios en la base de datos
         db.session.commit()
-        return ok_message()
+        
+        return ok_message(message=f"{len(updated_nodes)} Nodos actualizados exitosamente.")
     except ResourceNotFound as err:
-        return not_found_message(entity="Nodo o humedal", details=str(err))
+        return not_found_message(entity="Node", details=str(err),)
 
 
-def delete_node(node_id):
+def delete_node(data):
     try:
-        node = Node.query.get(node_id)
-        if not node:
-            raise ResourceNotFound("Nodo no encontrado")
-        db.session.delete(node)
+        # Validar que la lista de nodees esté presente en la petición
+        node_ids = data.get("nodes")
+        if not node_ids or not isinstance(node_ids, list):
+            return bad_request_message(details="El campo 'nodes' debe ser una lista de IDs de nodees.")
+
+        # Consultar los nodees que existen en la base de datos
+        nodes = Node.query.filter(Node.node_id.in_(node_ids)).all()
+
+        # Identificar los nodees no encontrados
+        found_ids = {node.node_id for node in nodes}
+        missing_ids = set(node_ids) - found_ids
+
+        if missing_ids:
+            return not_found_message(details=f"Nodos no encontrados: {list(missing_ids)}", entity="Node")
+
+        # Eliminar los nodees encontrados
+        for node in nodes:
+            db.session.delete(node)
+
+        # Confirmar los cambios
         db.session.commit()
-        return '',204
-    except ResourceNotFound as e:
-        return not_found_message(details=str(e),entity="Nodo")
 
-def apply_filters_and_pagination(query, text_search=None, sort_order=None, statusList=None,typesList=None):
-    
-    
-    if typesList:
-        query = query.filter(or_(
-            typesList == None,
-            Node.node_type.in_(typesList)
-        ))
-
-    if statusList:
-        query = query.filter(or_(
-            statusList == None,
-            Node.status.in_(statusList)
-        ))
-    
+        return ok_message(message=f"{len(nodes)} Nodos eliminados exitosamente.")
+    except Exception as e:
+        db.session.rollback()
+        return server_error_message(details=str(e))
 
 
-    if text_search:
-       
-        search_filter = or_(
-            Node.str_MAC.ilike(f'%{text_search}%'),
-            Node.location.ilike(f'%{text_search}%'),
-             Node.name.ilike(f'%{text_search}%')
-        )
-        query = query.filter(search_filter)
-
-    
-    if sort_order.property_name:
-        if sort_order.direction == 'ASC':
-            query = query.order_by(asc(sort_order.property_name))
-        else:
-            query = query.order_by(desc(sort_order.property_name))
-
-    return query
 
 
 def assing_sensors_service(node_id, data):

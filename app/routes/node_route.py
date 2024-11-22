@@ -9,7 +9,7 @@ from app.services.node_service import (
     assing_sensors_service
 )
 from marshmallow.exceptions import ValidationError
-from app.schemas.node_schema import NodeQuerySchema, NodeQuerySelectSchema,NodeSchema, SensorsListSchema
+from app.schemas.node_schema import NodeQuerySchema, NodeQuerySelectSchema,NodeSchema, NodeUpdateSchema, SensorsListSchema
 from app.utils.error.error_handlers import ResourceNotFound, ValidationErrorExc
 from app.utils.error.error_responses import *
 from app.utils.pagination.page_link import create_page_link
@@ -17,6 +17,7 @@ from app.utils.success_responses import ok_message
 node_bp = Blueprint('node', __name__, url_prefix='/api')
 
 node_schema = NodeSchema()
+node_schema_upt = NodeUpdateSchema()
 @node_bp.route('/nodes', methods=['GET'])
 def get_nodes():
     try:
@@ -31,15 +32,13 @@ def get_nodes():
         page_size = params['page_size']
         page = params['page']
         text_search = params.get('text_search', '')
-        sort_property = params.get('sort_property', 'created_at')
-        sort_order = params.get('sort_order', 'ASC')
-        statusList = params.get('statusList', '')
-        typesList = params.get('typesList', '')
+        sort = params.get('sort', 'created_at.asc')
+
         
         #create de pagination object
-        page_link = create_page_link(page_size,page,text_search,sort_property,sort_order)
+        page_link = create_page_link(page_size, page, text_search, sort)
 
-        nodes = get_all_nodes(page_link,statusList=statusList,typesList=typesList)
+        nodes = get_all_nodes(page_link, params=params)
         return nodes
     except Exception as e:
         error_message = ' '.join(str(e).split()[:5])
@@ -88,27 +87,28 @@ def create_nodes():
         error_message = ' '.join(str(e).split()[:5])
         return server_error_message(details=error_message)
 
-@node_bp.route('/nodes/<int:id>', methods=['PUT'])
-def update_node_route(id):
+@node_bp.route('/nodes', methods=['PUT'])
+def update_node_route():
     try:
 
         try:
-            req = node_schema.load(request.json, partial=True)
-        except ValidationError as e:
-            return bad_request_message(details=str(e.messages))  
-    
-        response = update_node(id, request.json)
+            req = node_schema_upt.load(request.json, partial=True)
+        except Exception as e:
+            return bad_request_message(details=str(e))
+        
+        response = update_node(request.json)
         
         return response
     except Exception as e:
         error_message = ' '.join(str(e).split()[:5])
         return server_error_message(details=error_message)
 
-@node_bp.route('/nodes/<int:id>', methods=['DELETE'])
-def delete_node_route(id):
+@node_bp.route('/nodes', methods=['DELETE'])
+def delete_node_route():
     try:
         
-        return delete_node(id)
+        return delete_node(request.json)
+
     except Exception as e:
         error_message = ' '.join(str(e).split()[:5])
         return server_error_message(details=error_message)

@@ -33,7 +33,7 @@ def get_all_sensors(pagelink,params=None):
         for row in sensors_paginated:
             
             obj={
-
+                "sensor_id": row.sensor_id,
                 "created_at": row.created_at,
                 "name": row.sensor_name,
                 "type_sensor": {
