@@ -159,7 +159,7 @@ def get_wetlands_overview():
                 "status": row.wetland_status,
                 "location": row.wetland_location,
                 "sensors": {},
-                "last_updated": row.last_updated
+                "last_updated": row.register_date
             }
             
 
@@ -200,7 +200,7 @@ def get_wetlands_overview_details(wetland_id=None, node_id=None):
                     "location": row.wetland_location,
                     "nodes": [],
                     
-                    "last_updated": row.last_updated
+                    "last_updated": row.register_date
                 }
                 
             # Diccionario auxiliar para rastrear los nodos del humedal actual

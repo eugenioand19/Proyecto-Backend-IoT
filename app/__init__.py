@@ -13,8 +13,7 @@ from flask_jwt_extended import JWTManager
 from flasgger import Swagger
 from decouple import config
 from flask_cors import CORS
-from datetime import datetime 
-from pytz import timezone
+
 
 env = config('FLASK_ENV', 'development')
 
@@ -26,10 +25,7 @@ def init_app(config):
     db.init_app(app)
     ma = Marshmallow(app)
     jwt = JWTManager(app)
-    @app.before_request 
-    def set_timezone(): 
-        # Configura la zona horaria a Bogotá 
-        request.timezone = timezone('America/Bogota') 
+
     
 
     # Synchronize changes between models and tables
