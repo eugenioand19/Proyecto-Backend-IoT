@@ -6,12 +6,15 @@ from app.utils.error.error_handlers import register_error_handlers, setup_jwt_ha
 from app.routes.central_routes import register_blueprints
 from flask import Flask
 from db import db
+from flask import Flask,request
 from flask_marshmallow import Marshmallow
 from app.routes.user_route import user_bp
 from flask_jwt_extended import JWTManager
 from flasgger import Swagger
 from decouple import config
 from flask_cors import CORS
+from datetime import datetime 
+from pytz import timezone
 
 env = config('FLASK_ENV', 'development')
 
@@ -23,6 +26,11 @@ def init_app(config):
     db.init_app(app)
     ma = Marshmallow(app)
     jwt = JWTManager(app)
+    @app.before_request 
+    def set_timezone(): 
+        # Configura la zona horaria a Bogotá 
+        request.timezone = timezone('America/Bogota') 
+    
 
     # Synchronize changes between models and tables
     """ with app.app_context():
