@@ -1,9 +1,11 @@
 
+import uuid
 from app.models.role import Role
 from app.models.user import User
 from app.schemas.user_schema import UserSchema, UserSchemaView
 from app.services.role_service import get_role_by_id
 from app.utils.error.error_handlers import ResourceNotFound,ValidationErrorExc
+from app.utils.pagination.filters import apply_filters_and_pagination
 from db import db
 from marshmallow import ValidationError
 from sqlalchemy.exc import IntegrityError
@@ -16,19 +18,40 @@ user_schema = UserSchema()
 user_schema_many = UserSchemaView(many=True)
 user_schema_view = UserSchemaView()
 
-def get_users_service(pagelink,statusList,RoleList):
+def get_users_service(pagelink,params=None):
     try:
         
-        query = db.session.query(User.created_at, User.email, User.first_name, User.last_name, User.second_name, User.second_last_name, User.last_name, User.user_id,Role.description.label("role"), User.status).join(Role, User.role_id == Role.role_id)
+        query = db.session.query(User.created_at, User.email, User.first_name, User.last_name, User.second_name, User.second_last_name, User.last_name, User.user_id,Role.description.label("role_desc"), Role.role_id.label("role_id"), User.status,Role.name.label("role_code")).join(Role, User.role_id == Role.role_id)
 
         
         
-        query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order,statusList=statusList, roleList=RoleList)
+        query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order, params=params, entities=[User,Role])
         
         users_paginated = query.paginate(page=pagelink.page, per_page=pagelink.page_size, error_out=False)
         if not users_paginated.items:
             return not_found_message(message="Parece que aun no hay datos")
-        data = user_schema_many.dump(users_paginated)
+        
+        data=[]
+
+        for row in users_paginated:
+            
+            obj={
+                "first_name": row.first_name,
+                "created_at": row.created_at,
+                "last_name": row.last_name,
+                "role": {
+                    "description": row.role_desc,
+                    "code": row.role_code,
+                    "role_id": row.role_id
+                },
+                "second_name": row.second_name,
+                "second_last_name": row.second_last_name,
+                "status" : row.status,
+                "email": row.email,
+                "user_id": row.user_id
+            }
+
+            data.append(obj)
         return pagination_response(users_paginated.total,users_paginated.pages,users_paginated.page,users_paginated.per_page,data=data)
     except Exception as e:
         print(e)
@@ -83,42 +106,78 @@ def create_user(data):
         db.session.rollback()
         return not_found_message(details=e,entity="Rol") 
 
-def update_user(user_id, data):
+def update_user(data):
     try:
-        user = User.query.get(user_id)
-        if not user:
-            raise ResourceNotFound("User not found")
         
-        # Realizar las validaciones comunes
-        validate_user_data(data, user)
+        updated_users = []
+        # Verificar si se envió la lista de humedales
+        if not isinstance(data.get("users"), list):
+            return bad_request_message(details="El formato de los datos es incorrecto. Se esperaba una lista de Usuarios.")
+        for user_data in data["users"]:
+            user_id = user_data.get("user_id")
+            if not user_id:
+                return bad_request_message(details="Falta el campo 'user_id' en uno de los Usuarios.")
 
+            # Obtener el user de la base de datos
+            user = User.query.get(user_id)
+            if not user:
+                return not_found_message(entity="User", message=f"User con ID {user_id} no encontrado.")
+            validate =  validate_user_data(user_data,user)
+            # Actualizar el user
+            
+            user = user_schema.load(user_data, instance=user, partial=True)
+            
+            
+            updated_users.append(user)
+
+        # Confirmar los cambios en la base de datos
+        db.session.commit()
         
-        # Actualizar el usuario
-        user = user_schema.load(data, instance=user, partial=True)
+        return ok_message(message=f"{len(updated_users)} Usuarios actualizados exitosamente.")
+    except ResourceNotFound as err:
+        return not_found_message(entity="User", details=str(err),)
+    except ValidationErrorExc as val:
+        return bad_request_message(message=str(val))
+
+
+def delete_user(data):
+    try:
+        # Validar que la lista de usuarios esté presente en la petición
+        user_ids = data.get("users")
+        if not user_ids or not isinstance(user_ids, list):
+            return bad_request_message(details="El campo 'users' debe ser una lista de IDs de usuarios.")
+
+        # Convertir los IDs de usuario a UUID
+        try:
+            user_ids = [uuid.UUID(uid) for uid in user_ids]
+        except ValidationErrorExc as e:
+
+            return bad_request_message(details="Uno o más IDs no son válidos UUID.")
+
+        # Consultar los usuarios que existen en la base de datos
+        users = User.query.filter(User.user_id.in_(user_ids)).all()
+
+        # Identificar los usuarios no encontrados
+        found_ids = {user.user_id for user in users}
+        missing_ids = set(user_ids) - found_ids
+
+        if missing_ids:
+            return not_found_message(details=f"Usuarios no encontrados: {list(map(str, missing_ids))}", entity="User")
+
+        # Eliminar los usuarios encontrados
+        for user in users:
+            db.session.delete(user)
+
+        # Confirmar los cambios
         db.session.commit()
 
-        return ok_message()
-    except ValidationErrorExc as ve:
+        return ok_message(message=f"{len(users)} usuarios eliminados exitosamente.")
+    except ValidationErrorExc as val:
+        print("fff")
+        return bad_request_message(message=str(val))
+    except Exception as e:
         db.session.rollback()
-        return bad_request_message(message= str(ve),details=str(ve))
-    except IntegrityError as ie:
-        db.session.rollback()
-        return conflict_message(details=ie)
-    except ResourceNotFound as e:
-        db.session.rollback()
-        return not_found_message(details=e, entity="Rol O Usuario")
-
-def delete_user(user_id):
-    try:
-        user = User.query.get(user_id)
-        if not user:
-            raise ResourceNotFound("Usuario not found")
-        db.session.delete(user)
-        db.session.commit()
-        return '',204
-    except ResourceNotFound as e:
-        db.session.rollback()
-        return not_found_message(details=e, entity="Usuario")
+        return server_error_message(details=str(e))
 
 def check_password(password):
     # Password requirements
@@ -146,36 +205,7 @@ def check_password(password):
 
     return True, "Password is secure."
 
-def apply_filters_and_pagination(query, text_search=None, sort_order=None,statusList=None,roleList=None):
-    
-    if text_search:
-       
-        search_filter = or_(
-            User.first_name.ilike(f'%{text_search}%'),
-            User.last_name.ilike(f'%{text_search}%'),
-            User.email.ilike(f'%{text_search}%')
-        )
-        query = query.filter(search_filter)
 
-    
-    if sort_order.property_name:
-        if sort_order.direction == 'ASC':
-            query = query.order_by(asc(sort_order.property_name))
-        else:
-            query = query.order_by(desc(sort_order.property_name))
-    
-    if roleList:
-        query = query.filter(or_(
-            roleList == None,
-            Role.name.in_(roleList)
-        ))
-
-    if statusList:
-        query = query.filter(or_(
-            statusList == None,
-            User.status.in_(statusList)
-        ))
-    return query
 
 def validate_user_data(data, user=None):
     # Verificar si el correo ya existe
@@ -183,14 +213,14 @@ def validate_user_data(data, user=None):
         existing_user = User.query.filter_by(email=data['email']).first()
         if existing_user and (user is None or existing_user.user_id != user.user_id):
             
-            raise ValueError("El correo electrónico ya está registrado.")
+            raise ValidationErrorExc("Uno de los correos que intenta actualizar ya está registrado.")
     
 
     # Validar si el rol existe
     if data.get("role_id"):
         role_id = data.get("role_id")
         if role_id and not get_role_by_id(role_id):
-            raise ResourceNotFound("Role not found")
+            raise ResourceNotFound("Rol no encontrado")
 
     # Verificar la contraseña solo si se está actualizando o creando
     if data.get("password"):

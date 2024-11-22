@@ -19,7 +19,7 @@ def get_all_nodes(pagelink,params=None):
         
         query = db.session.query(Node.node_id,Node.name.label("node_name"), Node.created_at,Node.location.label("node_location"),Node.status.label("node_status"),Node.str_MAC, Node.installation_date, Node.latitude, Node.longitude, Wetland.name.label("wetland_name"), Wetland.wetland_id).join(Wetland, Wetland.wetland_id == Node.wetland_id )
 
-        query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order, params=params, entity=Node)
+        query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order, params=params, entities=[Node])
         
         nodes_paginated = query.paginate(page=pagelink.page, per_page=pagelink.page_size, error_out=False)
 

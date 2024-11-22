@@ -20,7 +20,7 @@ def get_all_sensors(pagelink,params=None):
         
         query = db.session.query(Sensor.name.label("sensor_name"), Sensor.created_at,Sensor.purchase_date, Sensor.sensor_id, Sensor.status,TypeSensor.name, TypeSensor.code, Sensor.latitude, Sensor.longitude).join(Sensor, Sensor.type_sensor == TypeSensor.code)
 
-        query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order, params=params, entity=Sensor)
+        query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order, params=params, entities=[Sensor])
         
         sensors_paginated = query.paginate(page=pagelink.page, per_page=pagelink.page_size, error_out=False)
 

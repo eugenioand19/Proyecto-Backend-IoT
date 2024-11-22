@@ -38,7 +38,7 @@ def get_all_wetlands(pagelink,params=None):
         
         query = Wetland.query
         
-        query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order, params=params, entity=Wetland)
+        query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order, params=params, entities=[Wetland])
         
         wetlands_paginated = query.paginate(page=pagelink.page, per_page=pagelink.page_size, error_out=False)
         if not wetlands_paginated.items:

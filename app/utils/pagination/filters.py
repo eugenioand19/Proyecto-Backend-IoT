@@ -1,7 +1,7 @@
 from sqlalchemy import func, or_, and_, asc, desc
 
 
-def apply_filters_and_pagination(query, text_search=None, sort_order=None, params=None, entity=None):
+def apply_filters_and_pagination(query, text_search=None, sort_order=None, params=None, entities=None):
     
     """
     Aplica filtros, combina condiciones dinámicamente usando AND/OR, y gestiona la paginación.
@@ -40,7 +40,13 @@ def apply_filters_and_pagination(query, text_search=None, sort_order=None, param
     combine_conditions = and_ if logical_operator == 'and' else or_
 
     # Obtener columnas válidas del modelo
-    valid_columns = {col.name: col for col in entity.__table__.columns}
+    #valid_columns = {col.name: col for col in entity.__table__.columns}
+    # Construir un mapa de columnas válido
+    valid_columns = {}
+    for entity in entities:
+        for column in entity.__table__.columns:
+            valid_columns[column.name] = column
+    
     
     for field, raw_value in params.items():
 
