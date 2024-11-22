@@ -163,7 +163,7 @@ def get_reports_wetland(wetland_id = None, node_id= None, sensor_id = None):
         page_link = create_time_page_link(page_size,page, text_search='', sort="created_at.ASC",start_time=start_time,end_time=end_time)
         report = wetlands_reports(wetland_id=wetland_id, node_id=node_id, sensor_id=sensor_id,pagelink=page_link,type_sensor=sensor_type)
         if format_ == 'json' or format_ is None:
-             return report
+            return report
         else:
             return wetlands_reports_endpoint(report,format_)
         
@@ -186,11 +186,11 @@ def get_reports_graph_wetland(wetland_id = None, node_id= None, sensor_id = None
         end_time = params.get('end_time', '')
 
 
-        if start_time and not end_time or end_time and not start_time:
+        """ if start_time and not end_time or end_time and not start_time:
             return bad_request_message(message="Deben estar ambas fechas diligenciadas")
 
         if wetland_id is None or node_id is None or sensor_id is None:
-            return bad_request_message(message="Debe tener todos los filtros seleccionados")
+            return bad_request_message(message="Debe tener todos los filtros seleccionados") """
         #create de pagination object
         page_link = create_time_page_link(page='',page_size='',sort='', text_search='',start_time=start_time,end_time=end_time)
 

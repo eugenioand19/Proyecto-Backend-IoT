@@ -406,6 +406,7 @@ def wetland_report_graph(wetland_id=None, node_id=None,sensor_id=None, pagelink=
                 return not_found_message(entity="Sensor")
 
         
+        
         query = get_wetlands_details(wetland_id=wetland_id, node_id=node_id, sensor_id=sensor_id, is_latest=False)
         
         query = apply_filters_reports(query=query, starTime=pagelink.start_time, endTime=pagelink.end_time,type_sensor=type_sensor)
