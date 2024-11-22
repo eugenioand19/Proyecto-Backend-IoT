@@ -23,6 +23,7 @@ class ReportQuerySchema(Schema):
     start_time = fields.Str(required=False, description="Star date")
     end_time = fields.Str(required=False, description="End date")
     sensor_type = fields.Str(required=False, description="Filter with typer sensor")
+    format = fields.Str(required=False, description="Formato")
 
 class ReportGraphQuerySchema(Schema):
     start_time = fields.Str(required=True, description="Star date")

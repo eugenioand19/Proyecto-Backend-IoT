@@ -16,7 +16,14 @@ from app.utils.success_responses import pagination_response,created_ok_message,o
 from app.utils.error.error_responses import bad_request_message, not_found_message,server_error_message
 from db import db
 from app.models.type_sensor import TypeSensor
-from sqlalchemy.orm import aliased
+from reportlab.pdfgen import canvas
+import csv
+from flask import make_response
+from io import StringIO, BytesIO
+from reportlab.lib.pagesizes import letter, landscape
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle,Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
 
 
 
@@ -433,3 +440,107 @@ def wetland_report_graph(wetland_id=None, node_id=None,sensor_id=None, pagelink=
         return ok_message(data=list)
     except ResourceNotFound as rnf:
         return not_found_message(entity="Humedal, Nodo o sensor")
+
+def wetlands_reports_endpoint(data_response,format_type):
+    # Extraer parámetros
+    
+    
+    # Llamar a la función principal para obtener los datos
+    try:
+        # Desempaquetar la tupla
+        data, status_code = data_response
+
+        # Verificar que la clave 'data' exista
+        if 'data' not in data:
+            return {"error": "Invalid data structure. Expected a 'data' key."}, 400
+        
+        print(format_type)
+        print(data_response)
+         # Normalizar el formato solicitado
+        format_type = format_type.lower().strip()
+
+        # Generar archivo CSV
+        if format_type == 'csv':
+            output = StringIO()
+            writer = csv.writer(output)
+            writer.writerow(["Wetland Name", "Wetland Location", "Node Name", "Node Location", "Sensor Name", "Register Date", "Value", "Type Sensor", "Unity"])
+            for report in data['data']:
+                writer.writerow([
+                    report['wetland']['name'],
+                    report['wetland']['location'],
+                    report['node']['name'],
+                    report['node']['location'],
+                    report['sensor']['name'],
+                    report['sensor']['register_date'],
+                    report['sensor']['value'],
+                    report['sensor']['type_sensor'],
+                    report['sensor']['unity']
+                ])
+            output.seek(0)
+            response = make_response(output.getvalue())
+            response.headers["Content-Disposition"] = "attachment; filename=wetland_reports.csv"
+            response.headers["Content-type"] = "text/csv"
+            return response
+
+        # Generar archivo PDF
+        elif format_type == 'pdf':
+            buffer = BytesIO()
+
+            # Configuración del PDF
+            doc = SimpleDocTemplate(
+                buffer,
+                pagesize=landscape(letter),  # Orientación horizontal
+            )
+            # Agregar título en el canvas (parte superior de la página)
+            # Crear título
+            styles = getSampleStyleSheet()
+            title = Paragraph("Reporte Humedales", styles['Title'])
+
+            table_data = [["Nombre Humedal", "Ubicacion Humedal", "Nombre del nodo", "Ubicacion del nodo", "Nombre Sensor", "Fecha de registro", "Valor", "Tipo de Sensor", "Unidad"]]
+
+            # Agregar los datos
+            for report in data['data']:
+                table_data.append([
+                    report['wetland']['name'],
+                    report['wetland']['location'],
+                    report['node']['name'],
+                    report['node']['location'],
+                    report['sensor']['name'],
+                    report['sensor']['register_date'].strftime('%Y-%m-%d %H:%M:%S'),  # Formatear fecha
+                    report['sensor']['value'],
+                    report['sensor']['type_sensor'],
+                    report['sensor']['unity']
+                ])
+
+            # Crear tabla
+            table = Table(table_data)
+
+            # Estilo de la tabla
+            style = TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),  # Fondo gris para encabezado
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),  # Texto blanco en encabezado
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),  # Centrar texto
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),  # Fuente en encabezado
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),  # Espaciado en encabezado
+                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),  # Fondo beige para filas
+                ('GRID', (0, 0), (-1, -1), 1, colors.black)  # Bordes negros
+            ])
+            table.setStyle(style)
+
+             # Agregar el título y la tabla al documento
+            elements = [title, table]
+
+            # Construir el documento
+            doc.build(elements)
+
+            # Retornar el PDF
+            buffer.seek(0)
+            response = make_response(buffer.getvalue())
+            response.headers["Content-Disposition"] = "attachment; filename=wetland_reports.pdf"
+            response.headers["Content-type"] = "application/pdf"
+            return response
+
+        else:
+            return {"error": "Unsupported format type. Use 'csv' or 'pdf'."}, 400
+    except Exception as e:
+        return {"error": str(e)}, 500

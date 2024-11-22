@@ -8,7 +8,7 @@ import re
 class SensorSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Sensor
-        load_instance = True
+        exclude = ('created_at','updated_at',)
     status = fields.Str(required=True, validate=validate.OneOf(["ACTIVE","INACTIVE"]))
     type_sensor = fields.Str(required=True)
 
@@ -32,3 +32,6 @@ class TypeSensorSchema(SQLAlchemyAutoSchema):
 
 class SensorQuerySelectSchema(Schema):
     text_search = fields.Str(required=False, description="Search query")
+
+class SensorsUpdateSchema(Schema):
+    sensors = fields.List(fields.Nested(SensorSchema), required=True)

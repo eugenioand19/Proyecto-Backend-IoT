@@ -103,36 +103,73 @@ def create_sensor(data):
         db.session.rollback()
         return not_found_message(entity='Se',details=str(err))
 
-def update_sensor(sensor_id, data):
+def update_sensor(data):
     try:
-        sensor = Sensor.query.get(sensor_id)
-        if not sensor:
-            raise ResourceNotFound("Sensor not found")
+        
+        # Verificar si se envió la lista de sensores
+        if not isinstance(data.get("sensors"), list):
+            return bad_request_message(details="El formato de los datos es incorrecto. Se esperaba una lista de sensores.")
         
         # Obtener los códigos válidos de la base de datos
         valid_codes = {type_sensor.code for type_sensor in TypeSensor.query.all()}
-    
-        # Validar el campo 'type_sensor'
-        if data.get('type_sensor'):
-            if data.get('type_sensor') not in valid_codes:
-                return not_found_message(entity='Tipos de Sensores')
-        sensor = sensor_schema.load(data, instance=sensor, partial=True)
+
+        updated_sensors = []
+        
+        for sensor_data in data["sensors"]:
+            sensor_id = sensor_data.get("sensor_id")
+            if not sensor_id:
+                return bad_request_message(details="Falta el campo 'sensor_id' en uno de los sensores.")
+
+            # Obtener el sensor de la base de datos
+            sensor = Sensor.query.get(sensor_id)
+            if not sensor:
+                return not_found_message(entity="Sensor", message=f"Sensor con ID {sensor_id} no encontrado.")
+
+            # Validar el campo 'type_sensor', si está presente
+            if sensor_data.get("type_sensor") and sensor_data["type_sensor"] not in valid_codes:
+                return bad_request_message(details=f"El tipo de sensor '{sensor_data['type_sensor']}' no es válido para el sensor con ID {sensor_id}.")
+
+            # Actualizar el sensor
+            
+            sensor = sensor_schema.load(sensor_data, instance=sensor, partial=True)
+            updated_sensors.append(sensor)
+
+        # Confirmar los cambios en la base de datos
         db.session.commit()
-        return ok_message()
+        
+        return ok_message(message=f"{len(updated_sensors)} sensores actualizados exitosamente.")
     except ResourceNotFound as err:
-        return not_found_message(entity="Sensor", details=str(err))
+        return not_found_message(entity="Sensor", details=str(err),)
 
 
-def delete_sensor(sensor_id):
+def delete_sensor(data):
     try:
-        sensor = Sensor.query.get(sensor_id)
-        if not sensor:
-            raise ResourceNotFound("Sensor no encontrado")
-        db.session.delete(sensor)
+        # Validar que la lista de sensores esté presente en la petición
+        sensor_ids = data.get("sensors")
+        if not sensor_ids or not isinstance(sensor_ids, list):
+            return bad_request_message(details="El campo 'sensors' debe ser una lista de IDs de sensores.")
+
+        # Consultar los sensores que existen en la base de datos
+        sensors = Sensor.query.filter(Sensor.sensor_id.in_(sensor_ids)).all()
+
+        # Identificar los sensores no encontrados
+        found_ids = {sensor.sensor_id for sensor in sensors}
+        missing_ids = set(sensor_ids) - found_ids
+
+        if missing_ids:
+            return not_found_message(details=f"Sensores no encontrados: {list(missing_ids)}", entity="Sensor")
+
+        # Eliminar los sensores encontrados
+        for sensor in sensors:
+            db.session.delete(sensor)
+
+        # Confirmar los cambios
         db.session.commit()
-        return '',204
-    except ResourceNotFound as e:
-        return not_found_message(details=str(e),entity="Sensor")
+
+        return ok_message(message=f"{len(sensors)} sensores eliminados exitosamente.")
+    except Exception as e:
+        db.session.rollback()
+        return server_error_message(details=str(e))
 
 def apply_filters_and_pagination(query, text_search=None, sort_order=None, params=None, entity=Sensor):
     

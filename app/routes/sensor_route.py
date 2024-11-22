@@ -8,7 +8,7 @@ from app.services.sensor_service import (
     delete_sensor,
     get_all_type_sensors
 )
-from app.schemas.sensor_schema import SensorQuerySchema, SensorQuerySelectSchema, SensorSchema
+from app.schemas.sensor_schema import SensorQuerySchema, SensorQuerySelectSchema, SensorSchema, SensorsUpdateSchema
 from app.utils.error.error_responses import *
 from app.utils.pagination.page_link import create_page_link
 from app.utils.success_responses import ok_message
@@ -17,6 +17,7 @@ from app.models.type_sensor import TypeSensor
 sensor_bp = Blueprint('sensor', __name__, url_prefix='/api')
 
 sensor_schema = SensorSchema()
+sensor_upt_schema =SensorsUpdateSchema()
 
 @sensor_bp.route('/sensors', methods=['GET'])
 def get_sensors():
@@ -72,25 +73,27 @@ def create_sensors():
         error_message = ' '.join(str(e).split()[:5])
         return server_error_message(details=error_message)
 
-@sensor_bp.route('/sensors/<int:id>', methods=['PUT'])
-def update_sensor_route(id):
+@sensor_bp.route('/sensors', methods=['PUT'])
+def update_sensor_route():
     try:
         try:
-            req = sensor_schema.load(request.json, partial=True)
+            
+            req = sensor_upt_schema.load(request.json, partial=True)
         except Exception as e:
+            
             return bad_request_message(details=str(e))
-    
-        response = update_sensor(id, request.json)
+        
+        response = update_sensor(request.json)
         
         return response
     except Exception as e:
         error_message = ' '.join(str(e).split()[:5])
         return server_error_message(details=error_message)
 
-@sensor_bp.route('/sensors/<int:id>', methods=['DELETE'])
-def delete_sensor_route(id):
+@sensor_bp.route('/sensors', methods=['DELETE'])
+def delete_sensor_route():
     try:
-        return delete_sensor(id)
+        return delete_sensor(request.json)
     except Exception as e:
         error_message = ' '.join(str(e).split()[:5])
         return server_error_message(details=error_message)

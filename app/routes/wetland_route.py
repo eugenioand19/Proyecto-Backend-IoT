@@ -10,7 +10,8 @@ from app.services.wetland_service import (
     update_wetland,
     delete_wetland,
     wetland_report_graph,
-    wetlands_reports
+    wetlands_reports,
+    wetlands_reports_endpoint
 )
 from app.schemas.wetland_schema import WetlandQuerySchema, WetlandQuerySelectSchema,WetlandSchema
 from app.utils.error.error_handlers import ResourceNotFound
@@ -142,10 +143,10 @@ def get_wetlands_dashboard_details(id_wetland):
 def get_reports_wetland(wetland_id = None, node_id= None, sensor_id = None):
     try:
         schema = ReportQuerySchema()
-        try:
-            params = schema.load(request.args)
-        except Exception as e:
-            return bad_request_message(details=str(e))
+        #try:
+        params = schema.load(request.args)
+        """ except Exception as e:
+            return bad_request_message(details=str(e)) """
         
         #get se params
         page_size = params['page_size']
@@ -153,17 +154,19 @@ def get_reports_wetland(wetland_id = None, node_id= None, sensor_id = None):
         start_time = params.get('start_time', '')
         end_time = params.get('end_time', '')
         sensor_type = params.get('sensor_type', '')
-
+        format_ = params.get('format') 
         if start_time and not end_time or end_time and not start_time:
             return bad_request_message(message="Deben estar ambas fechas diligenciadas")
 
 
         #create de pagination object
         page_link = create_time_page_link(page_size,page, text_search='', sort="created_at.ASC",start_time=start_time,end_time=end_time)
-
         report = wetlands_reports(wetland_id=wetland_id, node_id=node_id, sensor_id=sensor_id,pagelink=page_link,type_sensor=sensor_type)
-
-        return report
+        if format_ == 'json' or format_ is None:
+             return report
+        else:
+            return wetlands_reports_endpoint(report,format_)
+        
     except Exception as e:
         print(e)
         error_message = ' '.join(str(e).split()[:5])
