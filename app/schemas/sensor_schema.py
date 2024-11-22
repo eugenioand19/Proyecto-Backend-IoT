@@ -5,10 +5,19 @@ from app.models.type_sensor import TypeSensor
 from app.utils.delimited_list import DelimitedListField
 import re
 
+from db import db
+
 class SensorSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Sensor
         load_instance = True
+        exclude = ('created_at','updated_at',)
+    status = fields.Str(required=True, validate=validate.OneOf(["ACTIVE","INACTIVE"]))
+    type_sensor = fields.Str(required=True)
+
+class SensorSchemaUP(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Sensor
         exclude = ('created_at','updated_at',)
     status = fields.Str(required=True, validate=validate.OneOf(["ACTIVE","INACTIVE"]))
     type_sensor = fields.Str(required=True)
@@ -25,14 +34,17 @@ class SensorQuerySchema(Schema):
     name = fields.Str(required=False, description="Name")
     type_sensor = fields.Str(required=False, description="Type Sensor")
     operator = fields.Str(required=False, description="Operator")
+    latitude = fields.Str(required=False, description="latitude")
+    longitude = fields.Str(required=False, description="longitude")
 
 class TypeSensorSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = TypeSensor
         load_instance = True
+        sqla_session = db.session  # Asegura que SQLAlchemy use la sesión correcta
 
 class SensorQuerySelectSchema(Schema):
     text_search = fields.Str(required=False, description="Search query")
 
 class SensorsUpdateSchema(Schema):
-    sensors = fields.List(fields.Nested(SensorSchema), required=True)
+    sensors = fields.List(fields.Nested(SensorSchemaUP), required=True)

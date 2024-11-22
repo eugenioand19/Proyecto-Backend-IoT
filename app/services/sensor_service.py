@@ -93,10 +93,11 @@ def create_sensor(data):
 
         # Obtener los códigos válidos de la base de datos
         valid_codes = {type_sensor.code for type_sensor in TypeSensor.query.all()}
-    
+        
         # Validar el campo 'type_sensor'
         if data.type_sensor not in valid_codes:
             return not_found_message(entity='Tipos de Sensores')
+        
         db.session.add(data)
         db.session.commit()
         return created_ok_message(message="El Sensor ha sido creado correctamente!")
@@ -133,6 +134,8 @@ def update_sensor(data):
             # Actualizar el sensor
             
             sensor = sensor_schema.load(sensor_data, instance=sensor, partial=True)
+            
+            
             updated_sensors.append(sensor)
 
         # Confirmar los cambios en la base de datos

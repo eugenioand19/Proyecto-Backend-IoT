@@ -9,6 +9,7 @@ valid_statuses = ["good","warning","critical"]
 class WetlandSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Wetland
+        load_instance = True
         exclude = ('created_at','updated_at',)
     status = fields.Str(required=True, validate=validate.OneOf(valid_statuses))
 
@@ -30,5 +31,10 @@ class WetlandQuerySchema(Schema):
 class WetlandQuerySelectSchema(Schema):
     text_search = fields.Str(required=False, description="Search query")
 
+class WetlandSchemaUp(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Wetland
+        exclude = ('created_at','updated_at',)
+    status = fields.Str(required=True, validate=validate.OneOf(valid_statuses))
 class WetlandsUpdateSchema(Schema):
-    sensors = fields.List(fields.Nested(WetlandSchema), required=True)
+    wetlands = fields.List(fields.Nested(WetlandSchemaUp), required=True)

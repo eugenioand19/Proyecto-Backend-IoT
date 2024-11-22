@@ -105,11 +105,11 @@ def update_wetland_route():
         error_message = ' '.join(str(e).split()[:5])
         return server_error_message(details=error_message)
 
-@wetland_bp.route('/wetlands/<int:id>', methods=['DELETE'])
-def delete_wetland_route(id):
+@wetland_bp.route('/wetlands', methods=['DELETE'])
+def delete_wetland_route():
     try:
         
-        return delete_wetland(id)
+        return delete_wetland(request.json)
 
     except Exception as e:
         error_message = ' '.join(str(e).split()[:5])

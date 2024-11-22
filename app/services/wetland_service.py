@@ -37,7 +37,7 @@ def get_all_wetlands(pagelink,params=None):
     try:
         
         query = Wetland.query
-        print(params)
+        
         query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order, params=params, entity=Wetland)
         
         wetlands_paginated = query.paginate(page=pagelink.page, per_page=pagelink.page_size, error_out=False)
@@ -79,6 +79,7 @@ def get_wetland_by_id(wetland_id):
     
 def create_wetland(data):
     try:
+        
         db.session.add(data)
         db.session.commit()
         return created_ok_message(message="El humedal ha sido creado correctamente!")
@@ -88,7 +89,7 @@ def create_wetland(data):
 
 def update_wetland(data):
     try:
-
+        
         updated_wetlands = []
         # Verificar si se envió la lista de humedales
         if not isinstance(data.get("wetlands"), list):
@@ -106,6 +107,8 @@ def update_wetland(data):
             # Actualizar el wetland
             
             wetland = wetland_schema.load(wetland_data, instance=wetland, partial=True)
+            
+            
             updated_wetlands.append(wetland)
 
         # Confirmar los cambios en la base de datos
@@ -116,17 +119,34 @@ def update_wetland(data):
         return not_found_message(entity="Wetland", details=str(err),)
 
 
-def delete_wetland(wetland_id):
+def delete_wetland(data):
     try:
-        wetland = Wetland.query.get(wetland_id)
-        if not wetland:
-            raise ResourceNotFound("Humedal no encontrado")
-        
-        db.session.delete(wetland)
+        # Validar que la lista de wetlandes esté presente en la petición
+        wetland_ids = data.get("wetlands")
+        if not wetland_ids or not isinstance(wetland_ids, list):
+            return bad_request_message(details="El campo 'wetlands' debe ser una lista de IDs de wetlandes.")
+
+        # Consultar los wetlandes que existen en la base de datos
+        wetlands = Wetland.query.filter(Wetland.wetland_id.in_(wetland_ids)).all()
+
+        # Identificar los wetlandes no encontrados
+        found_ids = {wetland.wetland_id for wetland in wetlands}
+        missing_ids = set(wetland_ids) - found_ids
+
+        if missing_ids:
+            return not_found_message(details=f"Humedales no encontrados: {list(missing_ids)}", entity="Wetland")
+
+        # Eliminar los wetlandes encontrados
+        for wetland in wetlands:
+            db.session.delete(wetland)
+
+        # Confirmar los cambios
         db.session.commit()
-        return '',204
-    except ResourceNotFound as e:
-        return not_found_message(details=str(e),entity="Humedal")
+
+        return ok_message(message=f"{len(wetlands)} Humedales eliminados exitosamente.")
+    except Exception as e:
+        db.session.rollback()
+        return server_error_message(details=str(e))
 
 
 
@@ -310,7 +330,8 @@ def apply_filters_reports(query,  sort_order=None,starTime=None,endTime=None, ty
         start_time_bogota = start_time_dt.astimezone(bogota_tz) 
         end_time_bogota = end_time_dt.astimezone(bogota_tz)
 
-        
+        print(start_time_bogota)
+        print(end_time_bogota)
         query = query.filter(DataHistory.register_date.between(start_time_bogota, end_time_bogota))
 
     if sort_order:
