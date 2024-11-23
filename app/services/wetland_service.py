@@ -8,6 +8,8 @@ from app.models.node import Node
 from app.models.sensor import Sensor
 from app.models.sensor_node import SensorNode
 from app.models.type_sensor import TypeSensor
+from app.models.user_wetland import UserWetland
+from app.models.user import User
 from app.models.wetland import Wetland
 from app.schemas.data_history_schema import DataHistorySchema
 from app.schemas.wetland_schema import WetlandSchema
@@ -254,7 +256,7 @@ def get_wetlands_overview_details(wetland_id=None, node_id=None):
         return not_found_message(details=str(err))
     
 
-def get_wetlands_details(wetland_id=None, node_id=None,sensor_id=None,is_latest=False):
+def get_wetlands_details(wetland_id=None, node_id=None,sensor_id=None, vauser_id= None,is_latest=False):
     # Crear una subconsulta con un alias explícito para obtener la última actualización de cada sensor
     latest = (
         db.session.query(
@@ -295,6 +297,9 @@ def get_wetlands_details(wetland_id=None, node_id=None,sensor_id=None,is_latest=
         .join(SensorNode, (Node.node_id == SensorNode.node_id) & (SensorNode.status == 'ACTIVE'))
         .join(Sensor, Sensor.sensor_id == SensorNode.sensor_id)
         .join(TypeSensor, TypeSensor.code == Sensor.type_sensor)
+        .join(UserWetland, Wetland.wetland_id == UserWetland.wetland_id)
+        .join(User,User.user_id == UserWetland.user_id)
+        .filter(User.user_id == vauser_id)
         .order_by(Wetland.wetland_id)
     )
     

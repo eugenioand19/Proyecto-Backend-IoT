@@ -4,13 +4,13 @@ from flask_marshmallow.sqla import SQLAlchemyAutoSchema
 from app.models.user import User
 from app.utils.delimited_list import DelimitedListField
 
-
+statusList = ['active','inactive']
 class UserSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = User
         load_instance = True
         exclude = ('created_at','updated_at',)
-    status = fields.Str(required=False, validate=validate.OneOf(['active','inactive']))
+    status = fields.Str(required=False, validate=validate.OneOf(statusList))
 
 class UserSchemaView(SQLAlchemyAutoSchema):
     class Meta:
@@ -40,7 +40,7 @@ class UserSchemaUp(SQLAlchemyAutoSchema):
     class Meta:
         model = User
         exclude = ('created_at','updated_at','password',)
-    status = fields.Str(required=True, validate=validate.OneOf('active','inactive'))
+    status = fields.Str(required=True, validate=validate.OneOf(statusList))
 
 class UserUpdateSchema(Schema):
     users = fields.List(fields.Nested(UserSchemaUp), required=True)
