@@ -35,7 +35,7 @@ wetland_schema = WetlandSchema()
 wetland_schema_many = WetlandSchema(many=True)
 
 
-def get_all_wetlands(pagelink,params=None,user_id=None):
+def get_all_wetlands(pagelink,params=None):
     try:
         
         query = Wetland.query
@@ -52,10 +52,11 @@ def get_all_wetlands(pagelink,params=None,user_id=None):
     except Exception as e:
         raise Exception(str(e))
 
-def get_all_wetland_select(text_search):
+def get_all_wetland_select(text_search,vauser_id=None):
     try:
         
-        query = Wetland.query
+        query = db.session.query(Wetland).join(UserWetland, UserWetland.wetland_id == Wetland.wetland_id).join(User,User.user_id==UserWetland.user_id).filter(User.user_id == vauser_id)
+
         if text_search:
        
             search_filter = or_(

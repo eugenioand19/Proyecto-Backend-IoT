@@ -62,10 +62,29 @@ def get_users_service(pagelink,params=None):
 
 def get_user_by_id(user_id):
     try:
-        user = User.query.get(user_id)
+        #user = User.query.get(user_id)
+        user = db.session.query(User.created_at, User.email, User.first_name, User.last_name, User.second_name, User.second_last_name, User.last_name, User.user_id,Role.description.label("role_desc"), Role.role_id.label("role_id"), User.status,Role.name.label("role_code")).join(Role,Role.role_id==User.role_id).filter(User.user_id==user_id)
         if not user:
-            raise ValueError("Usuario no encontrado")
-        return user_schema_view.dump(user)
+            return not_found_message(message="Usuario no encontrado")
+        
+        row = user.first()
+        obj={
+                "first_name": row.first_name,
+                "created_at": row.created_at,
+                "last_name": row.last_name,
+                "role": {
+                    "description": row.role_desc,
+                    "code": row.role_code,
+                    "role_id": row.role_id
+                },
+                "second_name": row.second_name,
+                "second_last_name": row.second_last_name,
+                "status" : row.status,
+                "email": row.email,
+                "user_id": row.user_id
+            }
+        
+        return ok_message(data=obj, message="Usuario obtenido exitosamente")
     except ValueError as ve:
         raise ve
     except Exception as e:

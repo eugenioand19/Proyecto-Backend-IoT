@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from app.schemas.wetland_schema import WetlandListSchema
 from app.services.user_service import (
     assing_wetlands_service,
@@ -43,8 +44,21 @@ def get_users():
         return server_error_message(details=error_message)
     
 @user_bp.route('/users/<uuid:user_id>', methods=['GET'])
+@jwt_required()
 def get_user(user_id):
     try:
+        user = get_user_by_id(user_id)
+        return user
+    except Exception as e:
+        error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=error_message)
+
+@user_bp.route('/me', methods=['GET'])
+@jwt_required()
+def get_user_me():
+
+    try:
+        user_id = get_jwt_identity()
         user = get_user_by_id(user_id)
         return user
     except Exception as e:

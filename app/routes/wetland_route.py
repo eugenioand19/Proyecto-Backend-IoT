@@ -25,7 +25,7 @@ wetland_schema = WetlandSchema()
 wetland_schema_upt = WetlandsUpdateSchema()
 
 @wetland_bp.route('/wetlands', methods=['GET'])
-@jwt_required()
+
 def get_wetlands():
     try:
         schema = WetlandQuerySchema()
@@ -46,13 +46,14 @@ def get_wetlands():
         #create de pagination object
         page_link = create_page_link(page_size, page, text_search, sort)
 
-        wetlands = get_all_wetlands(page_link, params=params,user_id=user_id)
+        wetlands = get_all_wetlands(page_link, params=params)
         return wetlands
     except Exception as e:
         error_message = ' '.join(str(e).split()[:5])
         return server_error_message(details=error_message)
 
 @wetland_bp.route('/wetland-select', methods=['GET'])
+@jwt_required()
 def get_wetland_select():
     try:
         schema = WetlandQuerySelectSchema()
@@ -61,10 +62,11 @@ def get_wetland_select():
         except Exception as e:
             return bad_request_message(details=str(e))
         
+        user_id = get_jwt_identity()
         #get se params
         text_search = params.get('text_search', '')
         
-        wetlands = get_all_wetland_select(text_search)
+        wetlands = get_all_wetland_select(text_search,vauser_id=user_id)
         return wetlands
     except Exception as e:
         error_message = ' '.join(str(e).split()[:5])
