@@ -10,7 +10,7 @@ class UserSchema(SQLAlchemyAutoSchema):
         model = User
         load_instance = True
         exclude = ('created_at','updated_at',)
-    status = fields.Str(required=True, validate=validate.OneOf('active','inactive'))
+    status = fields.Str(required=False, validate=validate.OneOf(['active','inactive']))
 
 class UserSchemaView(SQLAlchemyAutoSchema):
     class Meta:

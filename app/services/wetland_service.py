@@ -325,13 +325,13 @@ def apply_filters_reports(query,  sort_order=None,starTime=None,endTime=None, ty
 
         start_time_dt = datetime.utcfromtimestamp(float(starTime) / 1000.0).replace(tzinfo=utc)
         end_time_dt = datetime.utcfromtimestamp(float(endTime) / 1000.0).replace(tzinfo=utc)
+        
         bogota_tz = timezone('America/Bogota')
         # Convertir a la zona horaria de Bogotá 
         start_time_bogota = start_time_dt.astimezone(bogota_tz) 
         end_time_bogota = end_time_dt.astimezone(bogota_tz)
 
-        #print(start_time_bogota)
-        #print(end_time_bogota)
+        
         query = query.filter(DataHistory.register_date.between(start_time_bogota, end_time_bogota))
 
     if sort_order:
@@ -426,8 +426,6 @@ def wetland_report_graph(wetland_id=None, node_id=None,sensor_id=None, pagelink=
                 last_hour = now - timedelta(hours=1) 
                 start_time = int(last_hour.timestamp() * 1000) 
                 end_time = int(now.timestamp() * 1000)
-            
-
         else:
             start_time = pagelink.start_time
             end_time=pagelink.end_time

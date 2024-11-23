@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from app.schemas.reports_schema import ReportGraphQuerySchema, ReportQuerySchema
 from app.services.wetland_service import (
     get_all_wetland_select,
@@ -22,7 +23,9 @@ wetland_bp = Blueprint('wetland', __name__, url_prefix='/api')
 
 wetland_schema = WetlandSchema()
 wetland_schema_upt = WetlandsUpdateSchema()
+
 @wetland_bp.route('/wetlands', methods=['GET'])
+@jwt_required()
 def get_wetlands():
     try:
         schema = WetlandQuerySchema()
@@ -31,6 +34,8 @@ def get_wetlands():
         except Exception as e:
             return bad_request_message(details=str(e))
         
+        user_id = get_jwt_identity()
+        print(user_id)
          #get se params
         page_size = params['page_size']
         page = params['page']

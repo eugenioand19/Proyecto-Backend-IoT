@@ -26,5 +26,14 @@ def conflict_message(details="Conflicto, registro duplicado."):
 def  unprocessable_entity_message(details="Uno o mas datos no cumplen con la longitud establecida"):
     return json_structure_error(message= "Un dato no se encuentra ingresado correctamente.",details=details, code=409)
 
+def  missing_jwt(details="Agregar JWT a la peticion", message="JWT es necesario",code=401):
+    return json_structure_error(message= message,details=details, code=code)
+
+def  error_invalid_token_callback(details="Token ingresado es inválido", message="Token ingresado es inválido",code=422):
+    return json_structure_error(message= message,details=details, code=code)
+
+def  error_expired_token_callback(details="Token ha expirado", message="Sesion ha expirado. Vuelva a Iniciar Sesion",code=401):
+    return json_structure_error(message= message,details=details, code=code)
+
 def  controlled_error_message(details="", message="",code=""):
     return json_structure_error(message= message,details=details, code=code)
