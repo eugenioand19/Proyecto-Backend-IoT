@@ -2,8 +2,11 @@
 import uuid
 from app.models.role import Role
 from app.models.user import User
+from app.models.user_wetland import UserWetland
+from app.models.wetland import Wetland
 from app.schemas.user_schema import UserSchema, UserSchemaView
 from app.services.role_service import get_role_by_id
+from app.services.wetland_service import get_wetland_by_id
 from app.utils.error.error_handlers import ResourceNotFound,ValidationErrorExc
 from app.utils.pagination.filters import apply_filters_and_pagination
 from db import db
@@ -231,3 +234,91 @@ def validate_user_data(data, user=None):
                 raise ValidationErrorExc(str(message))
 
     return True
+
+""" def assing_wetlands_service(user_id, data):
+    try:
+        user = User.query.get(user_id)
+
+        if user is None:
+            raise ResourceNotFound("El Usuario no ha sido encontrado")
+        
+        # Obtener los wetlandes del JSON enviado
+        new_wetland_ids = data.get('wetlands', [])
+
+        # Validar que todos los wetlandes existen
+        existing_wetlands = Wetland.query.filter(Wetland.wetland_id.in_(new_wetland_ids)).all()
+        existing_wetland_ids = {wetland.wetland_id for wetland in existing_wetlands}
+        missing_wetland_ids = set(new_wetland_ids) - existing_wetland_ids
+
+        if missing_wetland_ids:
+            raise ResourceNotFound(f"Los siguientes wetlandes no existen: {missing_wetland_ids}")
+        
+        
+        
+        # Verificar los wetlandes ya existentes en el nodo
+        existing_wetland_users = UserWetland.query.filter_by(user_id=user_id).all()
+        existing_wetland_ids = [wetland_user.wetland_id for wetland_user in existing_wetland_users]
+        
+        # Actualizar los wetlandes existentes y marcar los no presentes como INACTIVO
+        for wetland_user in existing_wetland_users:
+            if wetland_user.wetland_id in new_wetland_ids:
+                wetland_user.status = "ACTIVE"  # Cambiar el estado a ACTIVO
+                wetland_user.installation_date = db.func.current_timestamp()  # Actualizar fecha de instalación
+                wetland_user.removal_date = None  # Restablecer la fecha de remoción
+            else:
+                wetland_user.status = "INACTIVE"  # Cambiar el estado a INACTIVO
+                wetland_user.removal_date = db.func.current_timestamp()  # Actualizar fecha de remoción
+        
+        # Crear nuevos registros para los wetlandes que no están asignados aún
+        for wetland_id in new_wetland_ids:
+            if wetland_id not in existing_wetland_ids:
+                new_wetland_user = UserWetland(
+                    user_id=user_id,
+                    wetland_id=wetland_id,
+                    status="ACTIVE",
+                    installation_date=db.func.current_timestamp()
+                )
+                db.session.add(new_wetland_user)
+        
+        # Guardar los cambios
+        db.session.commit()
+        return created_ok_message(message="La asigancion se ha realizado correctamente!")
+    except ResourceNotFound as nf:
+        db.session.rollback()
+        return not_found_message(details=str(nf))
+    except ValidationErrorExc as ve:
+        db.session.rollback()
+        return bad_request_message(message= str(ve),details=str(ve))
+    except Exception as err:
+        db.session.rollback()
+        error_message = ' '.join(str(err).split()[:5])
+        return server_error_message(details=error_message)
+     """
+
+def assing_wetlands_service(user_id,data):
+    try:
+
+        if not get_user_by_id(user_id):
+                raise ResourceNotFound("Role not found")
+        
+        user = User.query.get(user_id)
+        
+        data = data.get('wetlands', [])
+        
+        for item in data:
+            if not get_wetland_by_id(item):
+                raise ResourceNotFound("Humedal not found")
+        
+        user.wetlands = Wetland.query.filter(Wetland.wetland_id.in_(data)).all()
+        
+        db.session.commit()
+        return created_ok_message(message="La asigancion se ha realizado correctamente!")
+        
+    except ResourceNotFound as e:
+        return not_found_message(entity= "Rol o Permiso")
+    except IntegrityError as ie:
+        db.session.rollback()
+        return conflict_message()
+    except Exception as err:
+        db.session.rollback()
+        return controlled_error_message(details=str("Invalid operation"),message=str(err),code=404)

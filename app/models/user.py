@@ -2,6 +2,8 @@ from db import db
 from sqlalchemy.dialects.postgresql import UUID
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
+from app.models.user_wetland import UserWetland
+from app.models.wetland import Wetland
 class User(db.Model):
     __tablename__ = 'user'
     user_id = db.Column(UUID(as_uuid=True), primary_key=True,unique=True, default=uuid.uuid4, nullable=True)
@@ -15,6 +17,7 @@ class User(db.Model):
     role_id = db.Column(db.Integer,nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
+    wetlands = db.relationship('Wetland', secondary='user_wetland', backref=db.backref('user', lazy='dynamic'))
 
     def set_password(self, password):
         self.password = generate_password_hash(password=password,method='pbkdf2:sha256', salt_length=16)

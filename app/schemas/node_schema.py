@@ -19,7 +19,7 @@ class NodeQuerySchema(Schema):
     from_ = fields.Date(data_key="from")
     to = fields.Date()
 
-    status = fields.Str(required=False, description="Status")
+    status = fields.Str(required=False, description="Status",validate=validate.OneOf(["good","warning","critical"]))
     name = fields.Str(required=False, description="Name")
     location = fields.Str(required=False, description="Location")
     latitude = fields.Str(required=False, description="latitude")

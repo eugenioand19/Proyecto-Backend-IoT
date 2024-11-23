@@ -330,8 +330,8 @@ def apply_filters_reports(query,  sort_order=None,starTime=None,endTime=None, ty
         start_time_bogota = start_time_dt.astimezone(bogota_tz) 
         end_time_bogota = end_time_dt.astimezone(bogota_tz)
 
-        print(start_time_bogota)
-        print(end_time_bogota)
+        #print(start_time_bogota)
+        #print(end_time_bogota)
         query = query.filter(DataHistory.register_date.between(start_time_bogota, end_time_bogota))
 
     if sort_order:
@@ -431,6 +431,35 @@ def wetland_report_graph(wetland_id=None, node_id=None,sensor_id=None, pagelink=
         else:
             start_time = pagelink.start_time
             end_time=pagelink.end_time
+        
+        if not wetland_id  and not node_id and not sensor_id:
+            sensor = (
+                    db.session.query(DataHistory.sensor_id)
+                    .join(Sensor, Sensor.sensor_id == DataHistory.sensor_id)
+                    .filter(Sensor.status == "ACTIVE")  # Asegúrate de que el sensor esté activo
+                    .order_by(DataHistory.register_date.desc())  # Selecciona el más reciente
+                    .limit(1)
+                    .scalar()
+                )
+            prov = (
+                    db.session.query(
+                        Wetland.wetland_id.label("wetland_id"),
+                        Sensor.sensor_id.label("sensor_id"),
+                        Node.node_id.label("node_id"),
+                    )
+                    .join(Node, Node.wetland_id == Wetland.wetland_id)
+                    .join(SensorNode, (Node.node_id == SensorNode.node_id) & (SensorNode.status == 'ACTIVE'))
+                    .join(Sensor, Sensor.sensor_id == SensorNode.sensor_id)
+                    .join(DataHistory, DataHistory.sensor_id == Sensor.sensor_id)
+                    .filter(DataHistory.sensor_id == sensor)
+                    .order_by(DataHistory.register_date.desc())
+                    .limit(1)
+                    .first()
+                )
+            if not prov:
+                return not_found_message(message="No se pudo obtener un sensor, nodo o humedal relacionado")
+            wetland_id, node_id, sensor_id = prov.wetland_id, prov.node_id, prov.sensor_id
+            
         query = get_wetlands_details(wetland_id=wetland_id, node_id=node_id, sensor_id=sensor_id, is_latest=False)
         
         query = apply_filters_reports(query=query, starTime=start_time, endTime=end_time,type_sensor=type_sensor)

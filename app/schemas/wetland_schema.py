@@ -38,3 +38,6 @@ class WetlandSchemaUp(SQLAlchemyAutoSchema):
     status = fields.Str(required=True, validate=validate.OneOf(valid_statuses))
 class WetlandsUpdateSchema(Schema):
     wetlands = fields.List(fields.Nested(WetlandSchemaUp), required=True)
+
+class WetlandListSchema(Schema):
+    wetlands = fields.List(fields.Integer(strict=True), required=True)

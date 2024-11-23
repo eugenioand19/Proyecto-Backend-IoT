@@ -8,7 +8,7 @@ from app.services.role_service import (
     delete_role,
     create_role_permission
 )
-from app.schemas.role_schema import RoleQuerySchema, RoleQuerySelectSchema,RoleSchema,PermissionListSchema
+from app.schemas.role_schema import RoleQuerySchema, RoleQuerySelectSchema,RoleSchema,PermissionListSchema, RoleUpdateSchema
 from app.utils.error.error_handlers import ResourceNotFound
 from app.utils.error.error_responses import *
 from app.utils.pagination.page_link import create_page_link
@@ -16,6 +16,7 @@ from app.utils.success_responses import ok_message
 role_bp = Blueprint('role', __name__, url_prefix='/api')
 
 role_schema = RoleSchema()
+role_schema_upt = RoleUpdateSchema()
 @role_bp.route('/roles', methods=['GET'])
 def get_roles():
     try:
@@ -29,14 +30,13 @@ def get_roles():
         page_size = params['page_size']
         page = params['page']
         text_search = params.get('text_search', '')
-        sort_property = params.get('sort_property', 'created_at')
-        sort_order = params.get('sort_order', 'ASC')
+        sort = params.get('sort', 'created_at.asc')
 
         
         #create de pagination object
-        page_link = create_page_link(page_size,page,text_search,sort_property,sort_order)
+        page_link = create_page_link(page_size, page, text_search, sort)
 
-        roles = get_all_roles(page_link)
+        roles = get_all_roles(page_link,params=params)
         return roles
     except Exception as e:
         error_message = ' '.join(str(e).split()[:5])
@@ -84,26 +84,26 @@ def create_roles():
         error_message = ' '.join(str(e).split()[:5])
         return server_error_message(details=error_message)
 
-@role_bp.route('/roles/<int:id>', methods=['PUT'])
-def update_role_route(id):
+@role_bp.route('/roles', methods=['PUT'])
+def update_role_route():
     try:
 
         try:
-            req = role_schema.load(request.json, partial=True)
+            req = role_schema_upt.load(request.json, partial=True)
         except Exception as e:
             return bad_request_message(details=str(e))
     
-        response = update_role(id, request.json)
+        response = update_role(request.json)
         
         return response
     except Exception as e:
         error_message = ' '.join(str(e).split()[:5])
         return server_error_message(details=error_message)
 
-@role_bp.route('/roles/<int:id>', methods=['DELETE'])
-def delete_role_route(id):
+@role_bp.route('/roles', methods=['DELETE'])
+def delete_role_route():
     try:
-        return delete_role(id)
+        return delete_role(request.json)
     except Exception as e:
         return server_error_message(details=str(e))
     

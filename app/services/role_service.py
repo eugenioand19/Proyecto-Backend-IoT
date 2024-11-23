@@ -6,6 +6,7 @@ from app.models.role import Role
 from app.schemas.role_schema import RoleSchema
 from app.services.permission_service import get_permission_by_id
 from app.utils.error.error_handlers import ResourceNotFound
+from app.utils.pagination.filters import apply_filters_and_pagination
 from app.utils.success_responses import pagination_response,created_ok_message,ok_message
 from app.utils.error.error_responses import bad_request_message, conflict_message, controlled_error_message, not_found_message,server_error_message
 from db import db
@@ -14,12 +15,12 @@ from db import db
 role_schema = RoleSchema()
 role_schema_many = RoleSchema(many=True)
 
-def get_all_roles(pagelink):
+def get_all_roles(pagelink,params=None):
     try:
         
         query = Role.query
 
-        query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order)
+        query = apply_filters_and_pagination(query, text_search = pagelink.text_search,sort_order=pagelink.sort_order, params=params, entities=[Role])
         
         roles_paginated = query.paginate(page=pagelink.page, per_page=pagelink.page_size, error_out=False)
         if not roles_paginated.items:
@@ -71,55 +72,69 @@ def get_all_role_select(text_search):
     except Exception as e:
         raise Exception(str(e))
 
-def update_role(role_id, data):
+def update_role(data):
     try:
-
-        role = Role.query.get(role_id)
-
-        if not role:
-            raise ResourceNotFound("Rol no encontrado")
         
-        # Validar si el rol ya existe
-        if Role.query.filter_by(name=data.get("name")).first():
-            return conflict_message(details="Ya existe un rol con ese nombre.")
-        
-        role = role_schema.load(data, instance=role, partial=True)
+        updated_roles = []
+        # Verificar si se envió la lista de humedales
+        if not isinstance(data.get("roles"), list):
+            return bad_request_message(details="El formato de los datos es incorrecto. Se esperaba una lista de Roles.")
+        for role_data in data["roles"]:
+            role_id = role_data.get("role_id")
+            if not role_id:
+                return bad_request_message(details="Falta el campo 'role_id' en uno de los roles.")
+
+            # Obtener el role de la base de datos
+            role = Role.query.get(role_id)
+            if not role:
+                return not_found_message(entity="Role", message=f"Role con ID {role_id} no encontrado.")
+
+            # Actualizar el role
+            
+            role = role_schema.load(role_data, instance=role, partial=True)
+            
+            
+            updated_roles.append(role)
+
+        # Confirmar los cambios en la base de datos
         db.session.commit()
-        return ok_message()
-    except ResourceNotFound as e:
+        
+        return ok_message(message=f"{len(updated_roles)} roles actualizados exitosamente.")
+    except ResourceNotFound as err:
+        return not_found_message(entity="Role", details=str(err),)
+
+
+def delete_role(data):
+    try:
+        # Validar que la lista de rolees esté presente en la petición
+        role_ids = data.get("roles")
+        if not role_ids or not isinstance(role_ids, list):
+            return bad_request_message(details="El campo 'roles' debe ser una lista de IDs de rolees.")
+
+        # Consultar los rolees que existen en la base de datos
+        roles = Role.query.filter(Role.role_id.in_(role_ids)).all()
+
+        # Identificar los rolees no encontrados
+        found_ids = {role.role_id for role in roles}
+        missing_ids = set(role_ids) - found_ids
+
+        if missing_ids:
+            return not_found_message(details=f"Roles no encontrados: {list(missing_ids)}", entity="Role")
+
+        # Eliminar los rolees encontrados
+        for role in roles:
+            db.session.delete(role)
+
+        # Confirmar los cambios
+        db.session.commit()
+
+        return ok_message(message=f"{len(roles)} Roles eliminados exitosamente.")
+    except Exception as e:
         db.session.rollback()
-        return not_found_message(details=e,entity="Rol")
+        return server_error_message(details=str(e))
 
 
-def delete_role(role_id):
-    try:
-        role = Role.query.get(role_id)
-        if not role:
-            raise ResourceNotFound("Rol no encontrado")
-        
-        db.session.delete(role)
-        db.session.commit()
-        return '',204
-    except ResourceNotFound as e:
-        return not_found_message(details=str(e),entity="Rol")
 
-def apply_filters_and_pagination(query, text_search=None, sort_order=None):
-    
-    if text_search:
-        search_filter = or_(
-            Role.name.ilike(f'%{text_search}%'),
-            Role.description.ilike(f'%{text_search}%')
-        )
-        query = query.filter(search_filter)
-
-    
-    if sort_order.property_name:
-        if sort_order.direction == 'ASC':
-            query = query.order_by(asc(sort_order.property_name))
-        else:
-            query = query.order_by(desc(sort_order.property_name))
-
-    return query
 
 def create_role_permission(role_id,data):
     try:

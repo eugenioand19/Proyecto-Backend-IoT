@@ -1,5 +1,7 @@
 from flask import Blueprint, jsonify, request
+from app.schemas.wetland_schema import WetlandListSchema
 from app.services.user_service import (
+    assing_wetlands_service,
     get_users_service,
     get_user_by_id,
     create_user,
@@ -88,3 +90,14 @@ def delete_user_route():
     except Exception as e:
         error_message = ' '.join(str(e).split()[:5])
         return server_error_message(details=error_message)
+    
+@user_bp.route('/user/<uuid:user_id>/update_wetlands', methods=['POST'])
+def assing_wetlands(user_id):
+    
+    schema = WetlandListSchema()
+    try:
+        params = schema.load(request.json)
+    except Exception as e:
+        return bad_request_message(details=str(e))
+    
+    return assing_wetlands_service(user_id,request.json)
