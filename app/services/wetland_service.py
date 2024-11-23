@@ -35,7 +35,7 @@ wetland_schema = WetlandSchema()
 wetland_schema_many = WetlandSchema(many=True)
 
 
-def get_all_wetlands(pagelink,params=None):
+def get_all_wetlands(pagelink,params=None,user_id=None):
     try:
         
         query = Wetland.query
@@ -297,9 +297,6 @@ def get_wetlands_details(wetland_id=None, node_id=None,sensor_id=None, vauser_id
         .join(SensorNode, (Node.node_id == SensorNode.node_id) & (SensorNode.status == 'ACTIVE'))
         .join(Sensor, Sensor.sensor_id == SensorNode.sensor_id)
         .join(TypeSensor, TypeSensor.code == Sensor.type_sensor)
-        .join(UserWetland, Wetland.wetland_id == UserWetland.wetland_id)
-        .join(User,User.user_id == UserWetland.user_id)
-        .filter(User.user_id == vauser_id)
         .order_by(Wetland.wetland_id)
     )
     

@@ -35,7 +35,7 @@ def get_wetlands():
             return bad_request_message(details=str(e))
         
         user_id = get_jwt_identity()
-        print(user_id)
+        
          #get se params
         page_size = params['page_size']
         page = params['page']
@@ -46,7 +46,7 @@ def get_wetlands():
         #create de pagination object
         page_link = create_page_link(page_size, page, text_search, sort)
 
-        wetlands = get_all_wetlands(page_link, params=params)
+        wetlands = get_all_wetlands(page_link, params=params,user_id=user_id)
         return wetlands
     except Exception as e:
         error_message = ' '.join(str(e).split()[:5])
