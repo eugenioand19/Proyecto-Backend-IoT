@@ -42,7 +42,7 @@ def create_role(data):
 
         # Validar si el rol ya existe
         if Role.query.filter_by(name=data.name).first():
-            return conflict_message(details="Ya existe un rol con ese nombre.")
+            return conflict_message(message="Ya existe un rol con ese nombre.")
     
         db.session.add(data)
         db.session.commit()
@@ -119,7 +119,7 @@ def delete_role(data):
         missing_ids = set(role_ids) - found_ids
 
         if missing_ids:
-            return not_found_message(details=f"Roles no encontrados: {list(missing_ids)}", entity="Role")
+            return not_found_message(message=f"Roles no encontrados: {list(missing_ids)}", entity="Role")
 
         # Eliminar los rolees encontrados
         for role in roles:

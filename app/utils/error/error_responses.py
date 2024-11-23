@@ -19,8 +19,9 @@ def server_error_message(details="Internal Server Error",message= "Problemas con
     return json_structure_error(message=message,details=details, code=500)
 
 
-def conflict_message(details="Conflicto, registro duplicado."):
-    return json_structure_error(message= "Parece que el registro que intentas crear ya existe.",details=details, code=409)
+def conflict_message(details="Conflicto, registro duplicado.",message="Parece que el registro que intentas crear ya existe."):
+    
+    return json_structure_error(message=message,details=details, code=409)
 
 
 def  unprocessable_entity_message(details="Uno o mas datos no cumplen con la longitud establecida"):

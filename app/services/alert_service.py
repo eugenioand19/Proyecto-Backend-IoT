@@ -100,7 +100,7 @@ def delete_alert(data):
         missing_ids = set(alert_ids) - found_ids
 
         if missing_ids:
-            return not_found_message(details=f"Alertas no encontradas: {list(missing_ids)}", entity="Alert")
+            return not_found_message(message=f"Alertas no encontradas: {list(missing_ids)}", entity="Alert")
 
         # Eliminar los alertes encontrados
         for alert in alerts:

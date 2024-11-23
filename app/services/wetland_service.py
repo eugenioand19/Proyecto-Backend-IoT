@@ -136,7 +136,7 @@ def delete_wetland(data):
         missing_ids = set(wetland_ids) - found_ids
 
         if missing_ids:
-            return not_found_message(details=f"Humedales no encontrados: {list(missing_ids)}", entity="Wetland")
+            return not_found_message(message=f"Humedales no encontrados: {list(missing_ids)}", entity="Wetland")
 
         # Eliminar los wetlandes encontrados
         for wetland in wetlands:

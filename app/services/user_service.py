@@ -64,7 +64,7 @@ def get_user_by_id(user_id):
     try:
         user = User.query.get(user_id)
         if not user:
-            raise ValueError("User not found")
+            raise ValueError("Usuario no encontrado")
         return user_schema_view.dump(user)
     except ValueError as ve:
         raise ve
@@ -99,7 +99,7 @@ def create_user(data):
         return created_ok_message(message="El usuario fue creado exitosamente.")
     except ValidationErrorExc as ve:
         db.session.rollback()
-        return bad_request_message(details=str(ve))
+        return bad_request_message(message=str(ve),details=str(ve))
     except ValueError as va:
         return conflict_message(details=va)
     except IntegrityError as ie:
@@ -107,7 +107,7 @@ def create_user(data):
         return conflict_message(details=ie) 
     except ResourceNotFound as e:
         db.session.rollback()
-        return not_found_message(details=e,entity="Rol") 
+        return not_found_message(details=str(e),entity="Rol",message=str(e)) 
 
 def update_user(data):
     try:
@@ -138,7 +138,7 @@ def update_user(data):
         
         return ok_message(message=f"{len(updated_users)} Usuarios actualizados exitosamente.")
     except ResourceNotFound as err:
-        return not_found_message(entity="User", details=str(err),)
+        return not_found_message(entity="User", details=str(err),message=str(err))
     except ValidationErrorExc as val:
         return bad_request_message(message=str(val))
 
@@ -165,7 +165,7 @@ def delete_user(data):
         missing_ids = set(user_ids) - found_ids
 
         if missing_ids:
-            return not_found_message(details=f"Usuarios no encontrados: {list(map(str, missing_ids))}", entity="User")
+            return not_found_message(message=f"Usuarios no encontrados: {list(map(str, missing_ids))}", entity="User")
 
         # Eliminar los usuarios encontrados
         for user in users:
@@ -176,7 +176,6 @@ def delete_user(data):
 
         return ok_message(message=f"{len(users)} usuarios eliminados exitosamente.")
     except ValidationErrorExc as val:
-        print("fff")
         return bad_request_message(message=str(val))
     except Exception as e:
         db.session.rollback()

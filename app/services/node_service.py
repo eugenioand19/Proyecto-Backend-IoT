@@ -97,7 +97,7 @@ def create_node(data):
         return created_ok_message(message="El Nodo ha sido creado correctamente!")
     except ResourceNotFound as err:
         db.session.rollback()
-        return not_found_message(entity='Humedal',details=str(err))
+        return not_found_message(entity='Humedal',details=str(err),message=str(err))
 
 def update_node(data):
     try:
@@ -146,7 +146,7 @@ def delete_node(data):
         missing_ids = set(node_ids) - found_ids
 
         if missing_ids:
-            return not_found_message(details=f"Nodos no encontrados: {list(missing_ids)}", entity="Node")
+            return not_found_message(message=f"Nodos no encontrados: {list(missing_ids)}", entity="Node")
 
         # Eliminar los nodees encontrados
         for node in nodes:
@@ -230,7 +230,7 @@ def assing_sensors_service(node_id, data):
         return created_ok_message(message="La asigancion se ha realizado correctamente!")
     except ResourceNotFound as nf:
         db.session.rollback()
-        return not_found_message(details=str(nf))
+        return not_found_message(details=str(nf),message= str(ve))
     except ValidationErrorExc as ve:
         db.session.rollback()
         return bad_request_message(message= str(ve),details=str(ve))

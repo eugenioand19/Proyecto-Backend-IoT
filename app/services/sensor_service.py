@@ -161,7 +161,7 @@ def delete_sensor(data):
         missing_ids = set(sensor_ids) - found_ids
 
         if missing_ids:
-            return not_found_message(details=f"Sensores no encontrados: {list(missing_ids)}", entity="Sensor")
+            return not_found_message(message=f"Sensores no encontrados: {list(missing_ids)}", entity="Sensor")
 
         # Eliminar los sensores encontrados
         for sensor in sensors:

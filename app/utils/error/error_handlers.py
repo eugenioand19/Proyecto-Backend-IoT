@@ -34,11 +34,11 @@ def register_error_handlers(app):
     
     @app.errorhandler(ValidationErrorExc)
     def handle_validation_error(e):
-        return bad_request_message(details=e)
+        return bad_request_message(details=str(e))
     
     @app.errorhandler(ResourceNotFound)
     def handle_resource_not_found(e):
-        return not_found_message(details=e)
+        return not_found_message(details=str(e))
     
 
     from flask_jwt_extended import JWTManager
