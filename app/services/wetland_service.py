@@ -332,7 +332,7 @@ def apply_filters_reports(query,  sort_order=None,starTime=None,endTime=None, ty
         end_time_bogota = end_time_dt.astimezone(bogota_tz)
 
         
-        query = query.filter(DataHistory.register_date.between(start_time_bogota, end_time_bogota))
+        query = query.filter(DataHistory.register_date.between(start_time_dt, end_time_dt))
 
     if sort_order:
         if sort_order.property_name:
