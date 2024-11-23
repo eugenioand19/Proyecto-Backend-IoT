@@ -216,7 +216,7 @@ def validate_user_data(data, user=None):
         existing_user = User.query.filter_by(email=data['email']).first()
         if existing_user and (user is None or existing_user.user_id != user.user_id):
             
-            raise ValidationErrorExc("Uno de los correos que intenta actualizar ya está registrado.")
+            raise ValidationErrorExc("Uno de los correos que intenta crear o actualizar ya está registrado.")
     
 
     # Validar si el rol existe
