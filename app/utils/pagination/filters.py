@@ -16,7 +16,7 @@ def apply_filters_and_pagination(
     filters = []
     operator_map = {
         'ilike': lambda col, val: col.ilike(f"%{val}%"),
-        'notContains': lambda col, val: ~col.ilike(f"%{val}%"),
+        'notIlike': lambda col, val: ~col.ilike(f"%{val}%"),
         'eq': lambda col, val: col == val,
         'notEq': lambda col, val: col != val,
         'startsWith': lambda col, val: col.ilike(f"{val}%"),
