@@ -30,7 +30,7 @@ def  unprocessable_entity_message(details="Uno o mas datos no cumplen con la lon
 def  missing_jwt(details="Agregar JWT a la peticion", message="JWT es necesario",code=401):
     return json_structure_error(message= message,details=details, code=code)
 
-def  error_invalid_token_callback(details="Token ingresado es inválido", message="Token ingresado es inválido",code=422):
+def  error_invalid_token_callback(details="Token ingresado es inválido", message="Token ingresado es inválido",code=401):
     return json_structure_error(message= message,details=details, code=code)
 
 def  error_expired_token_callback(details="Token ha expirado", message="Sesion ha expirado. Vuelva a Iniciar Sesion",code=401):
