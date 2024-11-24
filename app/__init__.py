@@ -13,7 +13,7 @@ from flask_jwt_extended import JWTManager
 from flasgger import Swagger
 from decouple import config
 from flask_cors import CORS
-
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 env = config('FLASK_ENV', 'development')
 
@@ -25,7 +25,8 @@ def init_app(config):
     db.init_app(app)
     ma = Marshmallow(app)
     jwt = JWTManager(app)
-
+    app.wsgi_app = ProxyFix(app.wsgi_app)
+    app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # Tamaño máximo (50 MB)
     
 
     # Synchronize changes between models and tables
