@@ -46,10 +46,20 @@ def apply_filters_and_pagination(
                         
                         filters.append(func.date(column) <= raw_value)
             if field not in ('to','from_'):
+                
                 # Extraer operador y valores
                 if '~' in raw_value:
-                    values_operator, operator_type = raw_value.rsplit('~', 1)
-                    multi_values = values_operator.split('.')
+                    parts = raw_value.rsplit('~', 2)
+                    # Asegurarse de que siempre haya 3 partes, rellenando con valores predeterminados
+                    values_operator, operator_type, multi = (parts + [None] * (3 - len(parts)))
+                     # Verificar si los valores tienen prefijo 'in-' y procesarlos
+                    if values_operator.startswith('in-'):
+                        multi_values = values_operator[3:].split('.')  # Quitar 'in-' y dividir
+                    else:
+                        multi_values = values_operator.split('.')  # Dividir por defecto
+
+                    
+                    
                 else:
                     values_operator = raw_value
                     operator_type = 'eq'
@@ -74,7 +84,10 @@ def apply_filters_and_pagination(
                 valid_columns = {col.name: col for col in entity.__table__.columns}
                 if field in valid_columns:
                     column = valid_columns[field]
+                    print(field)
+                    print(operator_type)
                     if operator_type in operator_map:
+                        print(operator_type)
                         if operator_type in ['eq', 'notEq'] and len(multi_values) > 1:
                             operator_type = 'in' if operator_type == 'eq' else 'notIn'
                             filters.append(operator_map[operator_type](column, multi_values))
