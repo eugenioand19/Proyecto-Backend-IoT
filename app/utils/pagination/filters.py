@@ -52,7 +52,7 @@ def apply_filters_and_pagination(
                     parts = raw_value.rsplit('~', 2)
                     # Asegurarse de que siempre haya 3 partes, rellenando con valores predeterminados
                     values_operator, operator_type, multi = (parts + [None] * (3 - len(parts)))
-                     # Verificar si los valores tienen prefijo 'in-' y procesarlos
+                    # Verificar si los valores tienen prefijo 'in-' y procesarlos
                     if values_operator.startswith('in-'):
                         multi_values = values_operator[3:].split('.')  # Quitar 'in-' y dividir
                     else:
@@ -84,8 +84,7 @@ def apply_filters_and_pagination(
                 valid_columns = {col.name: col for col in entity.__table__.columns}
                 if field in valid_columns:
                     column = valid_columns[field]
-                    print(field)
-                    print(operator_type)
+                    
                     if operator_type in operator_map:
                         print(operator_type)
                         if operator_type in ['eq', 'notEq'] and len(multi_values) > 1:

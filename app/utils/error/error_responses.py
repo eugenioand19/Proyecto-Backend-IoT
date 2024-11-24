@@ -3,7 +3,7 @@ from app.utils.structure.response_structure import json_structure_error
 def forbidden_message(details="Access to this resource is forbidden."):
     return json_structure_error(message= "Usted no tiene acceso a esta ruta.",details=details, code=403)
 
-def bad_request_message(details="Invalid request.",message= "Bad request"):
+def bad_request_message(details="Invalid request.",message= "Ha ocurrido un error, inténtalo mas tarde"):
     return json_structure_error(message= message,details=details, code=400)
 
 def not_found_message(entity=None, details="Not Found", message=None):

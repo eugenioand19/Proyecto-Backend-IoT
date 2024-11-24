@@ -12,7 +12,7 @@ class PermissionQuerySchema(Schema):
     page = fields.Int(required=True, description="Page number", validate=validate.Range(min=1))
     text_search = fields.Str(required=False, description="Search query")
     sort_property = fields.Str(required=False, description="Sort property", 
-                               validate=validate.OneOf(["created_at", "name","description"]))
+                            validate=validate.OneOf(["created_at", "name","description"]))
     sort_order = fields.Str(required=False, description="Sort order", 
                             validate=validate.OneOf(["ASC", "DESC"]))
 
