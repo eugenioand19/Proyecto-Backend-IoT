@@ -57,7 +57,6 @@ def get_users_service(pagelink,params=None):
             data.append(obj)
         return pagination_response(users_paginated.total,users_paginated.pages,users_paginated.page,users_paginated.per_page,data=data)
     except Exception as e:
-        print(e)
         raise Exception("Error al obtener los usuarios") from e
 
 def get_user_by_id(user_id):

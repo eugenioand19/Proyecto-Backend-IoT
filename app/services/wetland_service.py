@@ -1,7 +1,9 @@
 
 from datetime import datetime,timedelta
 import time
-from flask import jsonify
+from flask import Response, jsonify
+import openpyxl
+from openpyxl.styles import Alignment,Border,Side
 from sqlalchemy import and_, asc, desc, func, or_,join,select
 from app.models.data_history import DataHistory
 from app.models.node import Node
@@ -52,10 +54,10 @@ def get_all_wetlands(pagelink,params=None):
     except Exception as e:
         raise Exception(str(e))
 
-def get_all_wetland_select(text_search,vauser_id=None):
+def get_all_wetland_select(text_search,user_id=None):
     try:
         
-        query = db.session.query(Wetland).join(UserWetland, UserWetland.wetland_id == Wetland.wetland_id).join(User,User.user_id==UserWetland.user_id).filter(User.user_id == vauser_id)
+        query = db.session.query(Wetland).join(UserWetland, UserWetland.wetland_id == Wetland.wetland_id).join(User,User.user_id==UserWetland.user_id).filter(User.user_id == user_id)
 
         if text_search:
        
@@ -67,7 +69,7 @@ def get_all_wetland_select(text_search,vauser_id=None):
         
         query = query.with_entities(Wetland.wetland_id, Wetland.name).all()
         if not query:
-            return not_found_message(message="Parece que aun no hay datos")
+            return not_found_message(message="Parece que aun no tienes ningun humedal asignado")
         data = wetland_schema_many.dump(query)
         
         return ok_message(data=data)
@@ -349,54 +351,88 @@ def apply_filters_reports(query,  sort_order=None,starTime=None,endTime=None, ty
 
     return query
 
-def wetlands_reports(wetland_id=None, node_id=None,sensor_id=None, pagelink=None, type_sensor = None):
-
+def wetlands_reports(wetland_id=None, node_id=None, sensor_id=None, pagelink=None, type_sensor=None, format_=None):
     try:
+        # Validaciones iniciales
         if wetland_id:
             get_wetland_by_id(wetland_id)
-        
+
         if node_id:
             res = Node.query.get(node_id)
             if res is None:
                 raise ResourceNotFound("Nodo no encontrado")
 
-        if sensor_id: 
+        if sensor_id:
             sensor = Sensor.query.get(sensor_id)
             if not sensor:
                 return not_found_message(entity="Sensor")
-    
-        query = get_wetlands_details(wetland_id=wetland_id, node_id=node_id, sensor_id=sensor_id, is_latest=False)
-        
-        query = apply_filters_reports(query=query, starTime=pagelink.start_time, sort_order = pagelink.page_link.sort_order, endTime=pagelink.end_time,type_sensor=type_sensor)
-        
-        report_paginated = query.paginate(page=pagelink.page_link.page, per_page=pagelink.page_link.page_size, error_out=False)
 
-        if not report_paginated.items:
-            return not_found_message(message="Parece que aun no hay datos")
-        
-        list = []
+        # Obtener la consulta base
+        query = get_wetlands_details(
+            wetland_id=wetland_id,
+            node_id=node_id,
+            sensor_id=sensor_id,
+            is_latest=False,
+        )
 
-        for row in report_paginated:
-            
-            report={
+        # Aplicar filtros
+        query = apply_filters_reports(
+            query=query,
+            starTime=pagelink.start_time if pagelink else None,
+            sort_order=pagelink.page_link.sort_order if pagelink else None,
+            endTime=pagelink.end_time if pagelink else None,
+            type_sensor=type_sensor,
+        )
 
+        # Obtener registros según el formato
+        if format_ == "json" or not format_:
+            # Paginación para formato JSON
+            report_paginated = query.paginate(
+                page=pagelink.page_link.page,
+                per_page=pagelink.page_link.page_size,
+                error_out=False,
+            )
+            records = report_paginated.items
+        else:
+            # Sin paginación, obtener todos los registros
+            records = query.all()
+
+        # Verificar si hay datos
+        if not records:
+            return not_found_message(message="Parece que aún no hay datos")
+
+        # Construir la lista de resultados
+        result_list = []
+        for row in records:
+            report = {
                 "wetland": {"name": row.wetland_name, "location": row.wetland_location},
-                "node": {"name": row.node_name, "location":row.node_location},
+                "node": {"name": row.node_name, "location": row.node_location},
                 "sensor": {
                     "name": row.name_sensor,
                     "register_date": row.register_date,
                     "value": row.data_history_value,
                     "type_sensor": row.sensor_name,
-                    "unity": row.type_sensor_unity
-                }
+                    "unity": row.type_sensor_unity,
+                },
             }
+            result_list.append(report)
 
-            list.append(report)
-            
+        # Retornar la respuesta en el formato adecuado
+        if format_ == "json" or not format_:
+            return pagination_response(
+                total=report_paginated.total,
+                total_pages=report_paginated.pages,
+                current_page=report_paginated.page,
+                per_page=report_paginated.per_page,
+                data=result_list,
+            )
+        else:
+            # Retornar todos los registros en formato sin paginación
+            return ok_message(data=result_list)
 
-        return pagination_response(report_paginated.total,report_paginated.pages,report_paginated.page,report_paginated.per_page,data=list)
     except ResourceNotFound as rnf:
         return not_found_message(entity="Humedal, Nodo o sensor")
+
 
 def current_time_in_bogota(): 
     bogota_tz = timezone('America/Bogota') 
@@ -498,45 +534,90 @@ def wetland_report_graph(wetland_id=None, node_id=None,sensor_id=None, pagelink=
         return not_found_message(entity="Humedal, Nodo o sensor")
 
 def wetlands_reports_endpoint(data_response,format_type):
-    # Extraer parámetros
     
-    
-    # Llamar a la función principal para obtener los datos
+  
     try:
         # Desempaquetar la tupla
         data, status_code = data_response
 
         # Verificar que la clave 'data' exista
         if 'data' not in data:
-            return {"error": "Invalid data structure. Expected a 'data' key."}, 400
+            return bad_request_message()
         
-        print(format_type)
-        print(data_response)
-         # Normalizar el formato solicitado
+        # Normalizar el formato solicitado
         format_type = format_type.lower().strip()
 
         # Generar archivo CSV
-        if format_type == 'csv':
-            output = StringIO()
-            writer = csv.writer(output)
-            writer.writerow(["Wetland Name", "Wetland Location", "Node Name", "Node Location", "Sensor Name", "Register Date", "Value", "Type Sensor", "Unity"])
-            for report in data['data']:
-                writer.writerow([
-                    report['wetland']['name'],
-                    report['wetland']['location'],
-                    report['node']['name'],
-                    report['node']['location'],
-                    report['sensor']['name'],
-                    report['sensor']['register_date'],
-                    report['sensor']['value'],
-                    report['sensor']['type_sensor'],
-                    report['sensor']['unity']
-                ])
+        if format_type == 'excel':
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "Reporte de Humedales"
+
+            # Encabezados
+            headers = [
+                "Humedal (Nombre)", "Humedal (Ubicación)", 
+                "Nodo (Nombre)", "Nodo (Ubicación)", 
+                "Sensor (Nombre)", "Fecha de Registro", 
+                "Valor", "Tipo de Sensor", "Unidad"
+            ]
+            ws.append(headers)
+
+            # Definir el estilo del borde
+            thin_border = Border(
+                left=Side(style="thin"),
+                right=Side(style="thin"),
+                top=Side(style="thin"),
+                bottom=Side(style="thin")
+            )
+
+            # Aplicar bordes a los encabezados
+            for col in ws.iter_cols(min_row=1, max_row=1):
+                for cell in col:
+                    cell.alignment = Alignment(horizontal="center", vertical="center")
+                    cell.border = thin_border
+
+            # Agregar datos y aplicar bordes
+            for item in data["data"]:
+                wetland = item.get("wetland", {})
+                node = item.get("node", {})
+                sensor = item.get("sensor", {})
+
+                row = [
+                    wetland.get("name", "N/A"),
+                    wetland.get("location", "N/A"),
+                    node.get("name", "N/A"),
+                    node.get("location", "N/A"),
+                    sensor.get("name", "N/A"),
+                    sensor.get("register_date", "N/A"),
+                    sensor.get("value", "N/A"),
+                    sensor.get("type_sensor", "N/A"),
+                    sensor.get("unity", "N/A")
+                ]
+
+                # Añadir fila y aplicar bordes
+                ws.append(row)
+                for col_index, value in enumerate(row, start=1):
+                    ws.cell(row=ws.max_row, column=col_index).border = thin_border
+
+            # Ajustar el ancho de las columnas
+            for col in ws.columns:
+                max_length = max(len(str(cell.value)) for cell in col if cell.value is not None)
+                ws.column_dimensions[col[0].column_letter].width = max_length + 2
+
+            # Guardar el archivo en memoria
+            output = BytesIO()
+            wb.save(output)
             output.seek(0)
-            response = make_response(output.getvalue())
-            response.headers["Content-Disposition"] = "attachment; filename=wetland_reports.csv"
-            response.headers["Content-type"] = "text/csv"
-            return response
+
+            # Retornar como respuesta en Flask
+            return Response(
+                output,
+                mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                headers={
+                    "Content-Disposition": "attachment;filename=wetlands_report_with_borders.xlsx"
+                }
+            )
+            
 
         # Generar archivo PDF
         elif format_type == 'pdf':
@@ -583,7 +664,7 @@ def wetlands_reports_endpoint(data_response,format_type):
             ])
             table.setStyle(style)
 
-             # Agregar el título y la tabla al documento
+            # Agregar el título y la tabla al documento
             elements = [title, table]
 
             # Construir el documento
@@ -597,6 +678,6 @@ def wetlands_reports_endpoint(data_response,format_type):
             return response
 
         else:
-            return {"error": "Unsupported format type. Use 'csv' or 'pdf'."}, 400
+            return bad_request_message(message="Unsupported format type. Use 'excel'.",details="Unsupported format type. Use 'excel'.")
     except Exception as e:
-        return {"error": str(e)}, 500
+        raise Exception

@@ -66,7 +66,7 @@ def get_wetland_select():
         #get se params
         text_search = params.get('text_search', '')
         
-        wetlands = get_all_wetland_select(text_search,vauser_id=user_id)
+        wetlands = get_all_wetland_select(text_search,user_id=user_id)
         return wetlands
     except Exception as e:
         error_message = ' '.join(str(e).split()[:5])
@@ -167,7 +167,7 @@ def get_reports_wetland(wetland_id = None, node_id= None, sensor_id = None):
 
         #create de pagination object
         page_link = create_time_page_link(page_size,page, text_search='', sort="created_at.ASC",start_time=start_time,end_time=end_time)
-        report = wetlands_reports(wetland_id=wetland_id, node_id=node_id, sensor_id=sensor_id,pagelink=page_link,type_sensor=sensor_type)
+        report = wetlands_reports(wetland_id=wetland_id, node_id=node_id, sensor_id=sensor_id,pagelink=page_link,type_sensor=sensor_type,format_=format_)
         if format_ == 'json' or format_ is None:
             return report
         else:

@@ -11,8 +11,8 @@ def not_found_message(entity=None, details="Not Found", message=None):
         message = f"El {entity if entity else 'Elemento'} que intentas buscar no existe"
     return json_structure_error(message=message, details=details, code=404)
 
-def unauthorized_message(details="Unauthorized access."):
-    return json_structure_error(message= "Usted no se encuentra autorizado.",details=details, code=401)
+def unauthorized_message(details="Unauthorized access.",message="Usted no se encuentra autorizado."):
+    return json_structure_error(message= message,details=details, code=401)
 
 
 def server_error_message(details="Internal Server Error",message= "Problemas con el servidor, no eres tu, somos nosotros"):
