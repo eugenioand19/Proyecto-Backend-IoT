@@ -123,11 +123,12 @@ def delete_wetland_route():
         return server_error_message(details=error_message)
 
 @wetland_bp.route('/wetlands-overview', methods=['GET'])
+@jwt_required()
 def get_wetlands_dashboard():
 
     try:
-        
-        return get_wetlands_overview()
+        user_id = get_jwt_identity()
+        return get_wetlands_overview(user_id)
     except Exception as e:
         error_message = ' '.join(str(e).split()[:5])
         return server_error_message(details=error_message)

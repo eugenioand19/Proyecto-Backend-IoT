@@ -29,12 +29,9 @@ class UserQuerySchema(Schema):
     to = fields.Date()
     operator = fields.Str(required=False, description="Operator")
     status = fields.Str(required=False, description="Status")
-    first_name = fields.Str(required=False, description="First Name")
-    second_name = fields.Str(required=False, description="Second Name")
-    last_name = fields.Str(required=False, description="last name")
-    second_last_name = fields.Str(required=False, description="Second Last name")
+    name = fields.Str(required=False, description="First Name")
     email = fields.Str(required=False, description="Email")
-    name = fields.Str(required=False, data_key="role",description="Rol")
+    role = fields.Str(required=False, data_key="role",description="Rol")
 
 class UserSchemaUp(SQLAlchemyAutoSchema):
     class Meta:

@@ -24,7 +24,7 @@ user_schema_view = UserSchemaView()
 def get_users_service(pagelink,params=None):
     try:
         
-        query = db.session.query(User.created_at, User.email, User.first_name, User.last_name, User.second_name, User.second_last_name, User.last_name, User.user_id,Role.description.label("role_desc"), Role.role_id.label("role_id"), User.status,Role.name.label("role_code")).join(Role, User.role_id == Role.role_id)
+        query = db.session.query(User.created_at, User.email, User.first_name, User.last_name, User.second_name, User.second_last_name, User.last_name, User.user_id,Role.description.label("role_desc"), Role.role_id.label("role_id"), User.status,Role.code.label("role_code")).join(Role, User.role_id == Role.role_id)
 
         
         
@@ -57,12 +57,12 @@ def get_users_service(pagelink,params=None):
             data.append(obj)
         return pagination_response(users_paginated.total,users_paginated.pages,users_paginated.page,users_paginated.per_page,data=data)
     except Exception as e:
-        raise Exception("Error al obtener los usuarios") from e
+        raise Exception(str(e))
 
 def get_user_by_id(user_id):
     try:
         #user = User.query.get(user_id)
-        user = db.session.query(User.created_at, User.email, User.first_name, User.last_name, User.second_name, User.second_last_name, User.last_name, User.user_id,Role.description.label("role_desc"), Role.role_id.label("role_id"), User.status,Role.name.label("role_code")).join(Role,Role.role_id==User.role_id).filter(User.user_id==user_id)
+        user = db.session.query(User.created_at, User.email, User.first_name, User.last_name, User.second_name, User.second_last_name, User.last_name, User.user_id,Role.description.label("role_desc"), Role.role_id.label("role_id"), User.status,Role.code.label("role_code")).join(Role,Role.role_id==User.role_id).filter(User.user_id==user_id)
         if not user:
             return not_found_message(message="Usuario no encontrado")
         

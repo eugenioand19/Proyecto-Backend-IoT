@@ -18,7 +18,7 @@ class RoleQuerySchema(Schema):
     to = fields.Date()
     operator = fields.Str(required=False, description="Operator")
     
-    name = fields.Str(required=False, description="name")
+    code = fields.Str(required=False, description="code")
     description = fields.Str(required=False, description="Description")
 
 class PermissionListSchema(Schema):

@@ -155,9 +155,9 @@ def delete_wetland(data):
 
 
 
-def get_wetlands_overview():
+def get_wetlands_overview(user_id=None):
     
-    query= get_wetlands_details(is_latest=True)
+    query= get_wetlands_details(is_latest=True, user_id=user_id)
 
     # Procesar y estructurar los resultados
     wetlands = {}
@@ -259,7 +259,7 @@ def get_wetlands_overview_details(wetland_id=None, node_id=None):
         return not_found_message(details=str(err))
     
 
-def get_wetlands_details(wetland_id=None, node_id=None,sensor_id=None, vauser_id= None,is_latest=False):
+def get_wetlands_details(wetland_id=None, node_id=None,sensor_id=None, user_id= None,is_latest=False):
     # Crear una subconsulta con un alias explícito para obtener la última actualización de cada sensor
     latest = (
         db.session.query(
@@ -317,6 +317,9 @@ def get_wetlands_details(wetland_id=None, node_id=None,sensor_id=None, vauser_id
 
     if sensor_id is not None:
         query = query.filter(Sensor.sensor_id == sensor_id)
+    
+    if user_id:
+        query= query.join(UserWetland, UserWetland.wetland_id == Wetland.wetland_id).join(User,User.user_id == UserWetland.user_id).filter(User.user_id == user_id)
 
     return query
 

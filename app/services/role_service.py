@@ -41,7 +41,7 @@ def create_role(data):
     try:
 
         # Validar si el rol ya existe
-        if Role.query.filter_by(name=data.name).first():
+        if Role.query.filter_by(code=data.code).first():
             return conflict_message(message="Ya existe un rol con ese nombre.")
     
         db.session.add(data)
@@ -58,12 +58,12 @@ def get_all_role_select(text_search):
         if text_search:
        
             search_filter = or_(
-                Role.name.ilike(f'%{text_search}%'),
+                Role.code.ilike(f'%{text_search}%'),
                 Role.description.ilike(f'%{text_search}%')
             )
             query = query.filter(search_filter)
         
-        query = query.with_entities(Role.role_id, Role.name,Role.description).all()
+        query = query.with_entities(Role.role_id, Role.code,Role.description).all()
         if not query:
             return not_found_message(message="Parece que aun no hay datos")
         data = role_schema_many.dump(query)

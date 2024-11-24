@@ -40,6 +40,7 @@ def get_users():
         #response ok
         return get_users_service(page_link, params=params)
     except Exception as e:
+        print(e)
         error_message = ' '.join(str(e).split()[:5])
         return server_error_message(details=error_message)
     
