@@ -25,7 +25,7 @@ wetland_schema = WetlandSchema()
 wetland_schema_upt = WetlandsUpdateSchema()
 
 @wetland_bp.route('/wetlands', methods=['GET'])
-
+@jwt_required()
 def get_wetlands():
     try:
         schema = WetlandQuerySchema()

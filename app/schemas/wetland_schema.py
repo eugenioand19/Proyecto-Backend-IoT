@@ -20,7 +20,7 @@ class WetlandQuerySchema(Schema):
     sort = fields.Str(required=False, description="Sort in the format 'property.order'", validate=validate.Regexp(r'^[\w-]+\.(asc|desc)$', flags=re.IGNORECASE))
     from_ = fields.Date(data_key="from")
     to = fields.Date()
-    
+    operator = fields.Str(required=False, description="Operator")
     status = fields.Str(required=False, description="Status")
     name = fields.Str(required=False, description="Name")
     location = fields.Str(required=False, description="Location")
