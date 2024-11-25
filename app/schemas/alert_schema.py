@@ -5,7 +5,7 @@ from marshmallow import Schema, fields, validate
 from app.utils.delimited_list import DelimitedListField
 
 
-valid_statuses = ["ACTIVE","CLEARED","ACK","UNACK"]
+valid_statuses = ["Active","Cleared"]
 valid_types = ["CRITICAL","MAJOR","MINOR","WARNING","INDETERMINATE"]
 class AlertSchema(SQLAlchemyAutoSchema):
     class Meta:
