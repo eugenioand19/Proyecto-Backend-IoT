@@ -27,6 +27,7 @@ class AlertQuerySchema(Schema):
     status = fields.Str(required=False, description="Status")
     description = fields.Str(required=False, description="Description")
     severity = fields.Str(required=False, description="Severity")
+    title = fields.Str(required=False, description="Severity")
 
 class AlertSchemaUp(SQLAlchemyAutoSchema):
     class Meta:

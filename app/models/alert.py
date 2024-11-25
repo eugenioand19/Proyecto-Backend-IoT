@@ -6,6 +6,7 @@ class Alert(db.Model):
     node_id = db.Column(db.Integer, nullable=False)
     alert_date = db.Column(db.DateTime)
     status = db.Column(db.String(100))
+    title = db.Column(db.String(100))
     description = db.Column(db.String(500))
     severity = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
