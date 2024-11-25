@@ -538,7 +538,7 @@ def wetland_report_graph(wetland_id=None, node_id=None,sensor_id=None, pagelink=
     except ResourceNotFound as rnf:
         return not_found_message(entity="Humedal, Nodo o sensor")
 
-def wetlands_reports_endpoint(data_response,format_type):
+def wetlands_reports_endpoint(data_response,format_type,wetland_id=None, node_id=None,sensor_id=None):
     
   
     try:
@@ -554,35 +554,21 @@ def wetlands_reports_endpoint(data_response,format_type):
 
         # Generar archivo CSV
         if format_type == 'excel':
-            wb = openpyxl.Workbook()
-            ws = wb.active
-            ws.title = "Reporte de Humedales"
+            # Crear un buffer en memoria para el archivo CSV
+            output = StringIO()
+            writer = csv.writer(output)
 
-            # Encabezados
+            # Escribir los encabezados
             headers = [
                 "Humedal (Nombre)", "Humedal (Ubicación)", 
                 "Nodo (Nombre)", "Nodo (Ubicación)", 
                 "Sensor (Nombre)", "Fecha de Registro", 
                 "Valor", "Tipo de Sensor", "Unidad"
             ]
-            ws.append(headers)
+            writer.writerow(headers)
 
-            # Definir el estilo del borde
-            thin_border = Border(
-                left=Side(style="thin"),
-                right=Side(style="thin"),
-                top=Side(style="thin"),
-                bottom=Side(style="thin")
-            )
-
-            # Aplicar bordes a los encabezados
-            for col in ws.iter_cols(min_row=1, max_row=1):
-                for cell in col:
-                    cell.alignment = Alignment(horizontal="center", vertical="center")
-                    cell.border = thin_border
-
-            # Agregar datos y aplicar bordes
-            for item in data["data"]:
+            # Escribir los datos
+            for item in data['data']:
                 wetland = item.get("wetland", {})
                 node = item.get("node", {})
                 sensor = item.get("sensor", {})
@@ -596,30 +582,56 @@ def wetlands_reports_endpoint(data_response,format_type):
                     sensor.get("register_date", "N/A"),
                     sensor.get("value", "N/A"),
                     sensor.get("type_sensor", "N/A"),
-                    sensor.get("unity", "N/A")
+                    sensor.get("unity", "N/A"),
                 ]
+                writer.writerow(row)
+            
+                        # Obtener los nombres si los parámetros son proporcionados, de lo contrario asignar un valor predeterminado
+            if wetland_id:
+                wetland_name = db.session.query(Wetland.name).filter(Wetland.wetland_id==wetland_id).first()
+                wetland_name = wetland_name[0] if wetland_name else "Unknown"
+            else:
+                wetland_name = "Unknown"
 
-                # Añadir fila y aplicar bordes
-                ws.append(row)
-                for col_index, value in enumerate(row, start=1):
-                    ws.cell(row=ws.max_row, column=col_index).border = thin_border
+            if node_id:
+                node_name = db.session.query(Node.name).filter(Node.node_id==node_id).first()
+                node_name = node_name[0] if node_name else "Unknown"
+            else:
+                node_name = "Unknown"
 
-            # Ajustar el ancho de las columnas
-            for col in ws.columns:
-                max_length = max(len(str(cell.value)) for cell in col if cell.value is not None)
-                ws.column_dimensions[col[0].column_letter].width = max_length + 2
+            if sensor_id:
+                sensor_name = db.session.query(Sensor.name).filter(Sensor.sensor_id==sensor_id).first()
+                sensor_name = sensor_name[0] if sensor_name else "Unknown"
+            else:
+                sensor_name = "Unknown"
 
-            # Guardar el archivo en memoria
-            output = BytesIO()
-            wb.save(output)
-            output.seek(0)
+            # Obtener la fecha y hora actual
+            current_date = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
-            # Retornar como respuesta en Flask
+            # Generar el nombre del archivo con los parámetros disponibles
+            filename_parts = []
+
+            # Solo agregar los nombres si no son "Unknown"
+            if wetland_name != "Unknown":
+                filename_parts.append(wetland_name)
+            if node_name != "Unknown":
+                filename_parts.append(node_name)
+            if sensor_name != "Unknown":
+                filename_parts.append(sensor_name)
+
+            # Agregar la fecha al final
+            filename_parts.append(current_date)
+
+            # Generar el nombre final del archivo, con una parte opcional de "wetlands_report"
+            filename = "_".join(filename_parts) + "_wetlands_report.csv"
+
+            # Preparar el archivo para la descarga
+            output.seek(0)  # Volver al inicio del buffer
             return Response(
-                output,
-                mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                output.getvalue(),
+                mimetype="text/csv",
                 headers={
-                    "Content-Disposition": "attachment;filename=wetlands_report_with_borders.xlsx"
+                    "Content-Disposition": f"attachment;filename={filename}"
                 }
             )
             
@@ -685,4 +697,5 @@ def wetlands_reports_endpoint(data_response,format_type):
         else:
             return bad_request_message(message="Unsupported format type. Use 'excel'.",details="Unsupported format type. Use 'excel'.")
     except Exception as e:
+        print(e)
         raise Exception

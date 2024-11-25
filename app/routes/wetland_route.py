@@ -172,7 +172,7 @@ def get_reports_wetland(wetland_id = None, node_id= None, sensor_id = None):
         if format_ == 'json' or format_ is None:
             return report
         else:
-            return wetlands_reports_endpoint(report,format_)
+            return wetlands_reports_endpoint(report,format_,wetland_id=wetland_id,node_id=node_id,sensor_id=sensor_id)
         
     except Exception as e:
         print(e)

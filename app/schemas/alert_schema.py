@@ -32,7 +32,7 @@ class AlertQuerySchema(Schema):
 class AlertSchemaUp(SQLAlchemyAutoSchema):
     class Meta:
         model = Alert
-        exclude = ('created_at','updated_at','severity','node_id','alert_date')
+        exclude = ('created_at','updated_at','severity','node_id','alert_date','title',)
     status = fields.Str(required=True, validate=validate.OneOf(valid_statuses))
 
 class AlertsUpdateSchema(Schema):
