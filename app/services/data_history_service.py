@@ -45,8 +45,8 @@ def create_data_history(data_list):
 
     except Exception as e:
         db.session.rollback()  # Asegúrate de revertir cambios en caso de error
-        print(e)
-        raise Exception("Error al crear los registros de historial de datos") from e
+        
+        raise Exception(e) 
     
 def update_data_history(data_history_id, data):
     try:

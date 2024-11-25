@@ -36,8 +36,8 @@ def create_data_historys():
     except ValueError as ve:
         return jsonify({'error': str(ve)}), 400  # Error de validación
     except Exception as e:
-        error_message = ' '.join(str(e).split()[:5])
-        return server_error_message(details=error_message)
+        #error_message = ' '.join(str(e).split()[:5])
+        return server_error_message(details=e)
 
 @data_history_bp.route('/data_historys/<int:id>', methods=['PUT'])
 def update_data_history_route(id):
