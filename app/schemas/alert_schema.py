@@ -10,7 +10,7 @@ valid_types = ["CRITICAL","MAJOR","MINOR","WARNING","INDETERMINATE"]
 class AlertSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Alert
-        load_instance = False 
+        load_instance = True
         exclude = ('updated_at',)   
     status = fields.Str(required=True, validate=validate.OneOf(valid_statuses))
     severity = fields.Str(required=True, validate=validate.OneOf(valid_types))
