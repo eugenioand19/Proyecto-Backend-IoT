@@ -12,16 +12,19 @@ from app.services.user_service import (
 from app.schemas.user_schema import UserQuerySchema,UserSchema,UserSchemaView, UserUpdateSchema
 from app.utils.error.error_responses import *
 from app.utils.pagination.page_link import create_page_link
+from app.decorators.user_role import role_required
 user_bp = Blueprint('user', __name__, url_prefix='/api')
 
 user_schema = UserSchema()
 user_up_schema = UserUpdateSchema()
 @user_bp.route('/users', methods=['GET'])
+@jwt_required()
+@role_required(['ADMIN'])
 def get_users():
     try:
         
         schema = UserQuerySchema()
-
+        user_id = get_jwt_identity()
         #Validate req params
         try:
             params = schema.load(request.args)
