@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
+from app.decorators.user_role import role_required
 from app.schemas.reports_schema import ReportGraphQuerySchema, ReportQuerySchema
 from app.services.wetland_service import (
     get_all_wetland_select,
@@ -26,8 +27,10 @@ wetland_schema_upt = WetlandsUpdateSchema()
 
 @wetland_bp.route('/wetlands', methods=['GET'])
 @jwt_required()
+@role_required(['ADMIN'])
 def get_wetlands():
     try:
+        user_id = get_jwt_identity()
         schema = WetlandQuerySchema()
         try:
             params = schema.load(request.args)
@@ -36,7 +39,7 @@ def get_wetlands():
         
         user_id = get_jwt_identity()
         
-         #get se params
+        #get se params
         page_size = params['page_size']
         page = params['page']
         text_search = params.get('text_search', '')
@@ -56,6 +59,7 @@ def get_wetlands():
 @jwt_required()
 def get_wetland_select():
     try:
+        
         schema = WetlandQuerySelectSchema()
         try:
             params = schema.load(request.args)
@@ -73,6 +77,7 @@ def get_wetland_select():
         return server_error_message(details=error_message)
     
 @wetland_bp.route('/wetlands/<int:id>', methods=['GET'])
+
 def get_wetland(id):
     try:
         wetland = get_wetland_by_id(id)
@@ -84,8 +89,11 @@ def get_wetland(id):
         return server_error_message(details=error_message)
 
 @wetland_bp.route('/wetlands', methods=['POST'])
+@jwt_required()
+@role_required(['ADMIN'])
 def create_wetlands():
     try:
+        user_id = get_jwt_identity()
         try:
             req = wetland_schema.load(request.json)
         except Exception as e:
@@ -97,9 +105,11 @@ def create_wetlands():
         return server_error_message(details=error_message)
 
 @wetland_bp.route('/wetlands', methods=['PUT'])
+@jwt_required()
+@role_required(['ADMIN'])
 def update_wetland_route():
     try:
-
+        user_id = get_jwt_identity()
         try:
             req = wetland_schema_upt.load(request.json, partial=True)
         except Exception as e:
@@ -113,9 +123,11 @@ def update_wetland_route():
         return server_error_message(details=error_message)
 
 @wetland_bp.route('/wetlands', methods=['DELETE'])
+@jwt_required()
+@role_required(['ADMIN'])
 def delete_wetland_route():
     try:
-        
+        user_id = get_jwt_identity()
         return delete_wetland(request.json)
 
     except Exception as e:

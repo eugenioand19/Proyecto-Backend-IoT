@@ -1,4 +1,6 @@
 from flask import Blueprint, jsonify, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
+from app.decorators.user_role import role_required
 from app.services.node_service import (
     get_all_node_select,
     get_all_nodes,
@@ -19,9 +21,12 @@ node_bp = Blueprint('node', __name__, url_prefix='/api')
 node_schema = NodeSchema()
 node_schema_upt = NodeUpdateSchema()
 @node_bp.route('/nodes', methods=['GET'])
+@jwt_required()
+@role_required(['ADMIN'])
 def get_nodes():
     try:
         schema = NodeQuerySchema()
+        user_id = get_jwt_identity()
         try:
             params = schema.load(request.args)
         except ValidationError as e:
@@ -46,6 +51,8 @@ def get_nodes():
 
 @node_bp.route('/node-select', methods=['GET'])
 @node_bp.route('/node-select/<int:wetland_id>', methods=['GET'])
+@jwt_required()
+
 def get_node_select(wetland_id=None):
     try:
         schema = NodeQuerySelectSchema()
@@ -75,8 +82,11 @@ def get_node(id):
         return server_error_message(details=error_message)
 
 @node_bp.route('/nodes', methods=['POST'])
+@jwt_required()
+@role_required(['ADMIN'])
 def create_nodes():
     try:
+        user_id = get_jwt_identity()
         try:
             req = node_schema.load(request.json)
         except ValidationError as e:
@@ -88,9 +98,11 @@ def create_nodes():
         return server_error_message(details=error_message)
 
 @node_bp.route('/nodes', methods=['PUT'])
+@jwt_required()
+@role_required(['ADMIN'])
 def update_node_route():
     try:
-
+        user_id = get_jwt_identity()
         try:
             req = node_schema_upt.load(request.json, partial=True)
         except Exception as e:
@@ -104,9 +116,11 @@ def update_node_route():
         return server_error_message(details=error_message)
 
 @node_bp.route('/nodes', methods=['DELETE'])
+@jwt_required()
+@role_required(['ADMIN'])
 def delete_node_route():
     try:
-        
+        user_id = get_jwt_identity()
         return delete_node(request.json)
 
     except Exception as e:
@@ -115,8 +129,10 @@ def delete_node_route():
     
 
 @node_bp.route('/nodes/<int:node_id>/update_sensors', methods=['POST'])
+@jwt_required()
+@role_required(['ADMIN'])
 def assing_sensors(node_id):
-    
+    user_id = get_jwt_identity()
     schema = SensorsListSchema()
     try:
         params = schema.load(request.json)

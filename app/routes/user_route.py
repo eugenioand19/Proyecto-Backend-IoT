@@ -70,8 +70,11 @@ def get_user_me():
         return server_error_message(details=error_message)
 
 @user_bp.route('/users', methods=['POST'])
+@jwt_required()
+@role_required(['ADMIN'])
 def create_users():
     try:
+        user_id = get_jwt_identity()
         try:
             req = user_schema.load(request.json)
         except Exception as e:
@@ -85,9 +88,11 @@ def create_users():
     
 
 @user_bp.route('/users', methods=['PUT'])
+@jwt_required()
+@role_required(['ADMIN'])
 def update_user_route():
     try:
-
+        user_id = get_jwt_identity()
         try:
             req = user_up_schema.load(request.json, partial=True)
         except Exception as e:
@@ -101,17 +106,21 @@ def update_user_route():
         return server_error_message(details=error_message)
 
 @user_bp.route('/users', methods=['DELETE'])
+@jwt_required()
+@role_required(['ADMIN'])
 def delete_user_route():
     try:
-        
+        user_id = get_jwt_identity()
         return delete_user(request.json)
     except Exception as e:
         error_message = ' '.join(str(e).split()[:5])
         return server_error_message(details=error_message)
     
 @user_bp.route('/user/<uuid:user_id>/update_wetlands', methods=['POST'])
+@jwt_required()
+@role_required(['ADMIN'])
 def assing_wetlands(user_id):
-    
+    user_id = get_jwt_identity()
     schema = WetlandListSchema()
     try:
         params = schema.load(request.json)

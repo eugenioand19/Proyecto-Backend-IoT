@@ -1,4 +1,6 @@
 from flask import Blueprint, jsonify, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
+from app.decorators.user_role import role_required
 from app.services.role_service import (
     get_all_role_select,
     get_all_roles,
@@ -18,9 +20,12 @@ role_bp = Blueprint('role', __name__, url_prefix='/api')
 role_schema = RoleSchema()
 role_schema_upt = RoleUpdateSchema()
 @role_bp.route('/roles', methods=['GET'])
+@jwt_required()
+@role_required(['ADMIN'])
 def get_roles():
     try:
         schema = RoleQuerySchema()
+        user_id = get_jwt_identity()
         try:
             params = schema.load(request.args)
         except Exception as e:
@@ -43,8 +48,11 @@ def get_roles():
         return server_error_message(details=error_message)
 
 @role_bp.route('/role-select', methods=['GET'])
+@jwt_required()
+@role_required(['ADMIN'])
 def get_role_select():
     try:
+        user_id = get_jwt_identity()
         schema = RoleQuerySelectSchema()
         try:
             params = schema.load(request.args)
@@ -72,8 +80,11 @@ def get_role(id):
         return server_error_message(details=error_message)
 
 @role_bp.route('/roles', methods=['POST'])
+@jwt_required()
+@role_required(['ADMIN'])
 def create_roles():
     try:
+        user_id = get_jwt_identity()
         try:
             req = role_schema.load(request.json)
         except Exception as e:
@@ -85,9 +96,11 @@ def create_roles():
         return server_error_message(details=error_message)
 
 @role_bp.route('/roles', methods=['PUT'])
+@jwt_required()
+@role_required(['ADMIN'])
 def update_role_route():
     try:
-
+        user_id = get_jwt_identity()
         try:
             req = role_schema_upt.load(request.json, partial=True)
         except Exception as e:
@@ -101,16 +114,22 @@ def update_role_route():
         return server_error_message(details=error_message)
 
 @role_bp.route('/roles', methods=['DELETE'])
+@jwt_required()
+@role_required(['ADMIN'])
 def delete_role_route():
     try:
+        user_id = get_jwt_identity()
         return delete_role(request.json)
     except Exception as e:
         return server_error_message(details=str(e))
     
 
 @role_bp.route('/roles/<int:role_id>/update_permissions', methods=['POST'])
+@jwt_required()
+@role_required(['ADMIN'])
 def assing_role_permissions(role_id):
-    
+
+    user_id = get_jwt_identity()
     schema = PermissionListSchema()
     try:
         params = schema.load(request.json)
