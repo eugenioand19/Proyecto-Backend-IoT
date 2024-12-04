@@ -51,7 +51,7 @@ def get_nodes():
 
 @node_bp.route('/node-select', methods=['GET'])
 @node_bp.route('/node-select/<int:wetland_id>', methods=['GET'])
-@jwt_required()
+
 
 def get_node_select(wetland_id=None):
     try:
